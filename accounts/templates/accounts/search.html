@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="mb-8 bg-white p-6 rounded shadow">
+    <form method="get" class="flex gap-4">
+        <input type="text" name="q" placeholder="جستجو با نام..." class="flex-1 px-4 py-2 border rounded">
+        <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded">بگرد</button>
+    </form>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    {% for u in users %}
+        <div class="bg-white rounded p-4 shadow text-center">
+            <h3 class="font-bold">{{ u.display_name }}</h3>
+            <p>{{ u.city }}</p>
+            <a href="/profile/{{ u.id }}/" class="text-indigo-600 mt-2 block hover:underline">پروفایل</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

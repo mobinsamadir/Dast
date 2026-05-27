@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center py-10">
+    <h1 class="text-4xl font-bold mb-4">به دست‌دوستی خوش آمدید</h1>
+    <p class="text-lg text-gray-600 mb-8">جایی برای پیدا کردن دوستان جدید، شریک زندگی، و هم‌صحبت‌های عالی</p>
+
+    {% if not user.is_authenticated %}
+    <a href="/register/" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-500 transition duration-300">
+        همین حالا ثبت‌نام کنید
+    </a>
+    {% endif %}
+</div>
+
+<div class="mt-12">
+    <h2 class="text-2xl font-bold mb-6 text-center">جدیدترین اعضای ما</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for u in new_users %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+                {% if u.profile_picture %}
+                    <img src="{{ u.profile_picture.url }}" alt="{{ u.display_name }}" class="w-full h-48 object-cover">
+                {% else %}
+                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500">بدون عکس</div>
+                {% endif %}
+                <div class="p-4 text-center">
+                    <h3 class="font-bold text-lg mb-1">{{ u.display_name }}</h3>
+                    <p class="text-gray-500 text-sm mb-2">{{ u.city|default:"ناشناس" }}</p>
+                    {% if user.is_authenticated %}
+                        <a href="/profile/{{ u.id }}/" class="text-indigo-600 text-sm hover:underline">مشاهده پروفایل</a>
+                    {% else %}
+                        <a href="/register/" class="text-indigo-600 text-sm hover:underline" onclick="alert('برای مشاهده اطلاعات کامل باید ثبت‌نام کنید.'); return false;">مشاهده پروفایل</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-center col-span-full text-gray-500">هنوز کاربری ثبت نشده است.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto mb-8">
+    <div class="flex items-center mb-6">
+        {% if target_user.profile_picture %}
+            <img src="{{ target_user.profile_picture.url }}" class="w-24 h-24 rounded-full object-cover ml-6">
+        {% else %}
+            <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center ml-6">بدون عکس</div>
+        {% endif %}
+        <div>
+            <h2 class="text-3xl font-bold">{{ target_user.display_name }}</h2>
+            <p class="text-gray-600">{{ target_user.city }} | {{ target_user.get_marital_status_display }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div><span class="font-bold">دنبال:</span> {{ target_user.get_seeking_display }}</div>
+        <div><span class="font-bold">جنسیت:</span> {{ target_user.get_gender_display }}</div>
+        <div><span class="font-bold">قد:</span> {{ target_user.height }} cm</div>
+        <div><span class="font-bold">درآمد:</span> {{ target_user.income }}</div>
+    </div>
+
+    <div class="mb-6">
+        <h3 class="font-bold text-lg mb-2">درباره من:</h3>
+        <p class="text-gray-700 bg-gray-50 p-4 rounded">{{ target_user.bio|default:"چیزی ننوشته است." }}</p>
+    </div>
+
+    <div class="flex gap-4">
+        <a href="/chat/{{ target_user.id }}/" class="bg-indigo-600 text-white px-6 py-2 rounded shadow hover:bg-indigo-500">ارسال پیام</a>
+        <a href="/calls/{{ target_user.id }}/" class="bg-green-600 text-white px-6 py-2 rounded shadow hover:bg-green-500">تماس تصویری</a>
+    </div>
+</div>
+
+{% if similar_users %}
+<div class="max-w-3xl mx-auto">
+    <h3 class="font-bold text-xl mb-4">کاربران مشابه</h3>
+    <div class="grid grid-cols-4 gap-4">
+        {% for u in similar_users %}
+            <a href="/profile/{{ u.id }}/" class="bg-white rounded p-2 shadow text-center block hover:shadow-lg">
+                <div class="font-bold">{{ u.display_name }}</div>
+                <div class="text-sm text-gray-500">{{ u.city }}</div>
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
