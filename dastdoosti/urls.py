@@ -11,6 +11,7 @@ urlpatterns = [
     path('admin/backup/download/', download_backup, name='download_backup'),
     path('admin/', admin.site.urls),
     path('health/', health_check, name='health_check'),
+    path('api/v1/', include('core.api.urls')),
     path('', include('accounts.urls')),
     path('', include('subscriptions.urls')),
 ]
