@@ -204,3 +204,24 @@ else:
 VAPID_PRIVATE_KEY = env('VAPID_PRIVATE_KEY', default='vapid-private-key')
 VAPID_PUBLIC_KEY = env('VAPID_PUBLIC_KEY', default='vapid-public-key')
 VAPID_ADMIN_EMAIL = env('ADMIN_EMAIL', default='admin@example.com')
+
+# REST Framework configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Dastdoosti API',
+    'DESCRIPTION': 'REST API for Dastdoosti Social & Dating Network',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
