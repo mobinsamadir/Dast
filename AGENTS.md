@@ -64,6 +64,8 @@ Dastdoosti is a full-featured dating, networking, and gaming platform built prim
 
 *   **Previews vs. Production:**
     The project includes `docker-compose.yml` for a full production-like environment (PostgreSQL, Redis, Celery workers) and `docker-compose.preview.yml` for a lightweight, zero-external-dependency preview (SQLite, InMemory channels). Use preview for rapid UI testing.
+*   **GitHub Codespaces (Preview):**
+    The project has a `.devcontainer` configuration to easily test the application without a server. Using the provided button in `README.md`, an agent or user can launch the project instantly. It automatically installs dependencies (`requirements.txt`), seeds the database, and starts the local server.
 *   **Custom User Model:** Always reference the user model via `from django.contrib.auth import get_user_model; User = get_user_model()` or `settings.AUTH_USER_MODEL`. Do not import `CustomUser` directly.
 *   **Tailwind:** Tailwind is currently loaded via CDN. If complex custom CSS is required later, consider setting up a Node.js build process for Tailwind.
 *   **WebRTC:** The backend acts strictly as a signaling server. The actual P2P connection logic (ICE, SDP) resides on the frontend (to be fully fleshed out in the frontend templates).
