@@ -8,3 +8,5 @@ staticfiles/
 */__pycache__
 *.pyc
 */migrations/__pycache__
+*.pyc
+__pycache__/
