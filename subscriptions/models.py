@@ -44,6 +44,7 @@ class CoinTransaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 class GiftPacket(models.Model):
+    icon = models.ImageField(upload_to='subscriptions/icons/', null=True, blank=True)
     name = models.CharField(max_length=100)
     coins = models.IntegerField()
     price = models.DecimalField(max_digits=12, decimal_places=0)

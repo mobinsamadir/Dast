@@ -3,10 +3,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 import uuid
 import os
-from PIL import Image
-from io import BytesIO
-from django.core.files.uploadedfile import InMemoryUploadedFile
-import sys
 
 def user_directory_path(instance, filename):
     ext = filename.split('.')[-1]
@@ -85,19 +81,7 @@ class CustomUser(AbstractUser):
         if not self.referral_code:
             self.referral_code = str(uuid.uuid4())[:8].upper()
 
-        if self.profile_picture:
-            img = Image.open(self.profile_picture)
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
-            img.thumbnail((800, 800), Image.Resampling.LANCZOS)
-            output = BytesIO()
-            img.save(output, format='JPEG', quality=75)
-            output.seek(0)
-            self.profile_picture = InMemoryUploadedFile(
-                output, 'ImageField',
-                f"{self.profile_picture.name.split('.')[0]}.jpg",
-                'image/jpeg', sys.getsizeof(output), None
-            )
+
 
         super().save(*args, **kwargs)
 
