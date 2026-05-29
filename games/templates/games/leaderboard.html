@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}برترین‌ها | دست‌دوستی{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6 py-8">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-3">
+            <i data-lucide="trophy" class="w-8 h-8 text-yellow-500"></i> برترین بازیکنان
+        </h1>
+        <a href="{% url 'games_lobby' %}" class="text-sm text-gray-500 hover:text-primary transition-colors flex items-center gap-1">
+            بازگشت <i data-lucide="arrow-left" class="w-4 h-4 inline"></i>
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-surface-dark rounded-3xl shadow-sm border border-gray-100 dark:border-border-dark overflow-hidden">
+        <ul class="divide-y divide-gray-100 dark:divide-border-dark">
+            {% for u in top_users %}
+            <li class="p-4 sm:p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="font-bold text-gray-400 w-6 text-center">#{{ forloop.counter }}</div>
+                    {% if u.profile_picture %}
+                        <img src="{{ u.profile_picture.url }}" class="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-700">
+                    {% else %}
+                        <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                            <i data-lucide="user" class="w-6 h-6 text-gray-400"></i>
+                        </div>
+                    {% endif %}
+                    <a href="/u/{{ u.id }}/" class="font-bold text-gray-900 dark:text-white hover:text-primary">{{ u.display_name }}</a>
+                </div>
+                <div class="font-bold text-yellow-500 flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-lg" dir="ltr">
+                    {{ u.wallet.coin_balance|default:"0" }} <i data-lucide="coins" class="w-4 h-4"></i>
+                </div>
+            </li>
+            {% empty %}
+            <li class="p-12 text-center text-gray-500">هیچ بازیکنی برای نمایش در جدول وجود ندارد.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

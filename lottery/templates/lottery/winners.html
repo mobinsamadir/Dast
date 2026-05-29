@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}برندگان | دست‌دوستی{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="crown" class="w-6 h-6 text-yellow-500"></i> برندگان قبلی
+        </h1>
+        <a href="{% url 'lottery_list' %}" class="text-sm text-gray-500 hover:text-primary transition-colors">بازگشت <i data-lucide="arrow-left" class="w-4 h-4 inline"></i></a>
+    </div>
+
+    <div class="bg-white dark:bg-surface-dark rounded-3xl shadow-sm border border-gray-100 dark:border-border-dark overflow-hidden">
+        {% if lotteries %}
+            <ul class="divide-y divide-gray-100 dark:divide-border-dark">
+                {% for l in lotteries %}
+                <li class="p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <div>
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-1">{{ l.title }}</h3>
+                        <p class="text-sm text-gray-500" dir="ltr">تاریخ قرعه‌کشی: {{ l.draw_date|date:"Y/m/d H:i" }}</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="flex justify-center mb-1">
+                            <i data-lucide="trophy" class="w-5 h-5 text-yellow-500"></i>
+                        </div>
+                        <p class="font-bold text-primary">{{ l.winner.display_name }}</p>
+                        <p class="text-xs text-gray-500 font-mono">بلیت: {{ l.winning_ticket.ticket_number }}</p>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="text-center py-12">
+                <p class="text-gray-500">هنوز قرعه‌کشی‌ای به پایان نرسیده است.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

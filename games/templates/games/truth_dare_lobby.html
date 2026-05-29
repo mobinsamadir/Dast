@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}لابی جرأت یا حقیقت | دست‌دوستی{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="help-circle" class="w-6 h-6 text-purple-600"></i> لابی جرأت یا حقیقت
+        </h1>
+        <a href="{% url 'games_lobby' %}" class="text-sm text-gray-500 hover:text-primary transition-colors flex items-center gap-1">
+            بازگشت به گیم‌نت <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </a>
+    </div>
+
+    <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/50 rounded-3xl p-6 md:p-8 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+            <h2 class="text-xl font-bold text-purple-900 dark:text-purple-100 mb-2">یک اتاق جدید بسازید</h2>
+            <p class="text-purple-700 dark:text-purple-300 text-sm">دوستان خود را دعوت کنید. هزینه ایجاد و ورود: <strong>{{ entry_fee }} سکه</strong></p>
+        </div>
+        <form method="POST" action="">
+            {% csrf_token %}
+            <button type="submit" class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg hover:shadow-purple-500/30 whitespace-nowrap">
+                ساخت اتاق جدید
+            </button>
+        </form>
+    </div>
+
+    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">اتاق‌های در انتظار بازی</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for room in rooms %}
+        <div class="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-border-dark flex items-center justify-between hover:border-purple-300 transition-colors">
+            <div>
+                <h3 class="font-bold text-gray-900 dark:text-white mb-1">اتاق #{{ room.id|stringformat:"s"|slice:":4" }}</h3>
+                <p class="text-sm text-gray-500">{{ room.players.count }} بازیکن در انتظار</p>
+            </div>
+            <a href="{% url 'truth_dare_room' room.id %}" class="px-6 py-2 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50 font-bold rounded-xl transition-colors">
+                پیوستن ({{ entry_fee }} سکه)
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-12 text-center bg-white dark:bg-surface-dark rounded-2xl border border-gray-100 dark:border-border-dark">
+            <i data-lucide="ghost" class="w-12 h-12 text-gray-300 mx-auto mb-3"></i>
+            <p class="text-gray-500">هیچ اتاق فعالی وجود ندارد. اولین اتاق را شما بسازید!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

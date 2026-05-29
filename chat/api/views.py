@@ -13,7 +13,6 @@ class RoomListView(generics.ListAPIView):
     serializer_class = ChatRoomSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @method_decorator(cache_control(public=True, max_age=60))
     def get_queryset(self):
         return self.request.user.chat_rooms.all()
 

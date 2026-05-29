@@ -70,3 +70,8 @@ Dastdoosti is a full-featured dating, networking, and gaming platform built prim
 *   **Tailwind:** Tailwind is currently loaded via CDN. If complex custom CSS is required later, consider setting up a Node.js build process for Tailwind.
 *   **WebRTC:** The backend acts strictly as a signaling server. The actual P2P connection logic (ICE, SDP) resides on the frontend (to be fully fleshed out in the frontend templates).
 *   **Seeding Data:** Run `python manage.py seed_db` to quickly generate test users, wallets, and dummy data for immediate interface testing.
+
+## Test Information
+All tests are mocked for CI compliance:
+- Run all tests using `python manage.py test`
+- Do not run tests in Docker locally, it is natively configured.
