@@ -23,6 +23,7 @@ class Message(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_messages')
     text = models.TextField(null=True, blank=True)
     voice_file = models.FileField(upload_to='chat/voices/', null=True, blank=True)
+    image = models.ImageField(upload_to='chat/images/', null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_flagged = models.BooleanField(default=False)
 
