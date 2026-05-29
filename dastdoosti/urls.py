@@ -14,6 +14,11 @@ urlpatterns = [
     path('api/v1/', include('core.api.urls')),
     path('', include('accounts.urls')),
     path('', include('subscriptions.urls')),
+    path('chat/', include('chat.urls')),
+    path('notifications/', include('notifications.urls')),
+    path('calls/', include('calls.urls')),
+    path('games/', include('games.urls')),
+    path('lottery/', include('lottery.urls')),
 ]
 
 if settings.DEBUG:

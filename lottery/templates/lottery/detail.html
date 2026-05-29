@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}{{ lottery.title }} | دست‌دوستی{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">جزئیات قرعه‌کشی</h1>
+        <a href="{% url 'lottery_list' %}" class="text-sm text-gray-500 hover:text-primary transition-colors">بازگشت <i data-lucide="arrow-left" class="w-4 h-4 inline"></i></a>
+    </div>
+
+    <div class="bg-white dark:bg-surface-dark rounded-3xl shadow-sm border border-gray-100 dark:border-border-dark p-8 md:p-12 mb-8 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-red-50 to-transparent dark:from-red-900/10"></div>
+        <div class="relative z-10">
+            <i data-lucide="gift" class="w-16 h-16 text-primary mx-auto mb-4"></i>
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{{ lottery.title }}</h2>
+            <p class="text-gray-500 dark:text-gray-400 mb-6">{{ lottery.description }}</p>
+
+            <div class="inline-flex items-center justify-center gap-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-500 px-6 py-3 rounded-2xl border border-yellow-200 dark:border-yellow-800/50 text-xl font-extrabold mb-8">
+                جایزه بزرگ: {{ lottery.prize_coins }} <i data-lucide="coins" class="w-6 h-6"></i>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 w-full sm:w-auto">
+                    <p class="text-xs text-gray-500 mb-1">قیمت هر بلیت</p>
+                    <p class="font-bold text-gray-900 dark:text-white text-lg flex items-center justify-center gap-1">{{ lottery.ticket_price }} <i data-lucide="coins" class="w-4 h-4 text-yellow-500"></i></p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 w-full sm:w-auto">
+                    <p class="text-xs text-gray-500 mb-1">حداکثر مجاز</p>
+                    <p class="font-bold text-gray-900 dark:text-white text-lg">{{ lottery.max_tickets_per_user }} عدد</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 w-full sm:w-auto">
+                    <p class="text-xs text-gray-500 mb-1">بلیت‌های شما</p>
+                    <p class="font-bold text-primary text-lg">{{ user_tickets.count }} عدد</p>
+                </div>
+            </div>
+
+            {% if lottery.is_active %}
+                <form method="POST" action="{% url 'buy_ticket' lottery.id %}" class="mt-10">
+                    {% csrf_token %}
+                    {% if user_tickets.count < lottery.max_tickets_per_user %}
+                        <button type="submit" class="px-10 py-4 bg-primary text-white font-bold text-lg rounded-xl hover:bg-primary-dark transition-all shadow-md hover:shadow-red-glow">
+                            خرید یک بلیت
+                        </button>
+                    {% else %}
+                        <div class="px-10 py-4 bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-bold text-lg rounded-xl cursor-not-allowed border border-gray-300 dark:border-gray-700">
+                            سقف خرید تکمیل شد
+                        </div>
+                    {% endif %}
+                </form>
+            {% else %}
+                <div class="mt-10 px-10 py-4 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 font-bold text-lg rounded-xl border border-red-200 dark:border-red-800/50 inline-block">
+                    قرعه‌کشی پایان یافته است
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if user_tickets %}
+    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <i data-lucide="ticket" class="w-5 h-5 text-gray-500"></i> بلیت‌های خریداری شده توسط شما
+    </h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {% for ticket in user_tickets %}
+        <div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+            <div class="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-white dark:bg-surface-dark rounded-full border-r border-gray-200 dark:border-gray-700"></div>
+            <div class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-white dark:bg-surface-dark rounded-full border-l border-gray-200 dark:border-gray-700"></div>
+
+            <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">TICKET</p>
+            <p class="font-mono font-bold text-lg text-gray-900 dark:text-white tracking-widest">{{ ticket.ticket_number }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

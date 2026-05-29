@@ -1,3 +1,5 @@
+from drf_spectacular.utils import extend_schema
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -6,6 +8,8 @@ from chat.api.serializers import MessageSerializer
 from django.utils.dateparse import parse_datetime
 
 @api_view(['GET'])
+
+@extend_schema(responses={200: dict})
 @permission_classes([IsAuthenticated])
 def sync_view(request):
     """

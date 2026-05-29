@@ -50,6 +50,20 @@ INSTALLED_APPS = [
     "calls",
     "games",
     "lottery",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "drf_spectacular",
+
+
+
+
+
+
+
+
+
+
+
 ]
 
 MIDDLEWARE = [
@@ -225,3 +239,15 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# Production Security Defaults (override in environment if needed)
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000 # 1 year
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+# Enforce secure secret key reading from env
+SECRET_KEY = env('SECRET_KEY', default='django-insecure-z9y^71s4k1t4#&1i-q#9$#d+l(m*3u*v4y_@4$5r1g_e$8_g0_')

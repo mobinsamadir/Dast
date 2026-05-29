@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}بازی جرأت یا حقیقت | دست‌دوستی{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-purple-900 rounded-3xl overflow-hidden shadow-2xl relative min-h-[600px] flex flex-col">
+        <!-- Decor -->
+        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+
+        <!-- Header -->
+        <div class="p-6 border-b border-white/10 flex justify-between items-center relative z-10">
+            <div class="text-white font-bold flex items-center gap-2">
+                <i data-lucide="help-circle" class="w-6 h-6 text-purple-300"></i>
+                جرأت یا حقیقت
+                <span class="text-xs bg-white/20 px-2 py-1 rounded-full ml-2">اتاق #{{ room.id|stringformat:"s"|slice:":4" }}</span>
+            </div>
+            <div class="flex gap-2">
+                <span class="bg-yellow-500/20 text-yellow-300 border border-yellow-500/50 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                    جایزه کل: {{ room.reward_pool }} <i data-lucide="coins" class="w-3 h-3"></i>
+                </span>
+                <a href="{% url 'games_lobby' %}" class="bg-red-500/20 text-red-300 hover:bg-red-500/40 border border-red-500/50 px-3 py-1 rounded-full text-xs font-bold transition-colors">
+                    خروج از بازی
+                </a>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div class="flex-1 p-6 relative z-10 flex flex-col items-center justify-center text-center">
+
+            <div id="waiting-state" class="w-full max-w-md {% if room.status != 'WAITING' %}hidden{% endif %}">
+                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+                    <h2 class="text-2xl font-bold text-white mb-4">در انتظار بازیکنان...</h2>
+                    <p class="text-purple-200 mb-6">برای شروع بازی حداقل به ۲ نفر نیاز است.</p>
+
+                    <div class="flex justify-center -space-x-4 space-x-reverse mb-6" id="player-avatars">
+                        {% for player in room.players.all %}
+                            {% if player.profile_picture %}
+                                <img src="{{ player.profile_picture.url }}" class="w-12 h-12 rounded-full border-2 border-purple-900 object-cover" title="{{ player.display_name }}">
+                            {% else %}
+                                <div class="w-12 h-12 rounded-full bg-purple-700 border-2 border-purple-900 flex items-center justify-center text-white" title="{{ player.display_name }}">
+                                    <i data-lucide="user" class="w-6 h-6"></i>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if room.players.count >= 2 and request.user == room.players.first %}
+                        <button onclick="startGame()" class="w-full py-3 bg-white text-purple-900 font-bold rounded-xl hover:bg-purple-100 transition-colors shadow-lg">
+                            شروع بازی
+                        </button>
+                    {% elif room.players.count < 2 %}
+                        <div class="w-full py-3 bg-white/20 text-white/50 font-bold rounded-xl cursor-not-allowed border border-white/10">
+                            منتظر ورود افراد دیگر...
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="playing-state" class="w-full max-w-lg hidden">
+                <div class="text-purple-200 mb-4 font-medium text-lg">
+                    نوبت: <span id="current-player" class="text-white font-bold border-b-2 border-white pb-1">شما</span>
+                </div>
+
+                <!-- The Card -->
+                <div class="perspective-1000 w-full h-80 mb-8 cursor-pointer group" onclick="flipCard()">
+                    <div id="game-card" class="relative w-full h-full transition-transform duration-700 transform-style-3d">
+                        <!-- Front (Question Mark) -->
+                        <div class="absolute w-full h-full backface-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl shadow-2xl border-4 border-white/20 flex items-center justify-center">
+                            <i data-lucide="help-circle" class="w-32 h-32 text-white/50 animate-pulse"></i>
+                        </div>
+
+                        <!-- Back (The actual question) -->
+                        <div class="absolute w-full h-full backface-hidden bg-white rounded-3xl shadow-2xl border-4 border-purple-300 flex flex-col items-center justify-center p-8 rotate-y-180">
+                            <span id="card-type" class="px-4 py-1 rounded-full text-xs font-bold mb-6"></span>
+                            <p id="card-text" class="text-2xl font-bold text-gray-900 leading-relaxed">
+                                یک سوال یا چالش در اینجا نمایش داده می‌شود...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 justify-center" id="choice-buttons">
+                    <button onclick="chooseType('TRUTH')" class="flex-1 py-4 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl transition-all shadow-lg hover:-translate-y-1">
+                        حقیقت
+                    </button>
+                    <button onclick="chooseType('DARE')" class="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl transition-all shadow-lg hover:-translate-y-1">
+                        جرأت
+                    </button>
+                </div>
+
+                <button id="next-turn-btn" onclick="nextTurn()" class="hidden mt-6 mx-auto px-8 py-3 bg-white/20 hover:bg-white/30 text-white font-bold rounded-xl transition-colors border border-white/30 backdrop-blur-sm">
+                    نوبت بعدی
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .perspective-1000 { perspective: 1000px; }
+    .transform-style-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+    .is-flipped { transform: rotateY(180deg); }
+</style>
+
+<script>
+    // Stub functionality for the visual preview
+    function startGame() {
+        document.getElementById('waiting-state').classList.add('hidden');
+        document.getElementById('playing-state').classList.remove('hidden');
+    }
+
+    function chooseType(type) {
+        document.getElementById('choice-buttons').classList.add('opacity-50', 'pointer-events-none');
+
+        // Mock getting a question from the backend
+        const typeEl = document.getElementById('card-type');
+        const textEl = document.getElementById('card-text');
+
+        if(type === 'TRUTH') {
+            typeEl.innerText = "حقیقت";
+            typeEl.className = "px-4 py-1 rounded-full text-xs font-bold mb-6 bg-blue-100 text-blue-800 border border-blue-200";
+            textEl.innerText = "بزرگترین دروغی که تا به حال گفته‌ای چه بوده است؟";
+        } else {
+            typeEl.innerText = "جرأت";
+            typeEl.className = "px-4 py-1 rounded-full text-xs font-bold mb-6 bg-red-100 text-red-800 border border-red-200";
+            textEl.innerText = "به آخرین نفری که پیام داده‌ای زنگ بزن و بگو دوستش داری.";
+        }
+
+        flipCard();
+
+        setTimeout(() => {
+            document.getElementById('next-turn-btn').classList.remove('hidden');
+        }, 1000);
+    }
+
+    function flipCard() {
+        document.getElementById('game-card').classList.add('is-flipped');
+    }
+
+    function nextTurn() {
+        document.getElementById('game-card').classList.remove('is-flipped');
+        document.getElementById('next-turn-btn').classList.add('hidden');
+        document.getElementById('choice-buttons').classList.remove('opacity-50', 'pointer-events-none');
+
+        // In real app, WS tells whose turn is next
+        document.getElementById('current-player').innerText = "بازیکن بعدی";
+    }
+
+    // WebSocket logic would go here
+    const roomId = "{{ room.id }}";
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const gameSocket = new WebSocket(
+        wsProtocol + '://' + window.location.host + '/ws/game/' + roomId + '/'
+    );
+</script>
+{% endblock %}

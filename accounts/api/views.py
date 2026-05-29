@@ -1,3 +1,5 @@
+from drf_spectacular.utils import extend_schema
+
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from .serializers import UserSerializer, RegisterSerializer
@@ -23,6 +25,8 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return super().get(request, *args, **kwargs)
 
 @api_view(['GET'])
+
+@extend_schema(responses={200: UserSerializer(many=True)})
 @permission_classes([permissions.IsAuthenticated])
 @cache_control(public=True, max_age=300)
 def nearby_users(request):

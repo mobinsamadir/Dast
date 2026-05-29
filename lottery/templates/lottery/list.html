@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}قرعه‌کشی‌ها | دست‌دوستی{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-3">
+            <i data-lucide="ticket" class="w-8 h-8 text-primary"></i> قرعه‌کشی‌های فعال
+        </h1>
+        <div class="flex gap-2">
+            <a href="{% url 'my_tickets' %}" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                بلیت‌های من
+            </a>
+            <a href="{% url 'lottery_winners' %}" class="px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-500 font-bold rounded-xl hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors">
+                برندگان قبلی
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for lottery in lotteries %}
+        <div class="bg-white dark:bg-surface-dark rounded-3xl shadow-sm border border-gray-100 dark:border-border-dark overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
+            <div class="bg-gradient-to-br from-primary-dark to-primary p-6 text-white text-center relative overflow-hidden">
+                <i data-lucide="gift" class="absolute -right-4 -top-4 w-24 h-24 text-white/10 transform rotate-12"></i>
+                <h3 class="text-xl font-bold mb-2 relative z-10">{{ lottery.title }}</h3>
+                <div class="inline-block bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1 text-sm font-bold mt-2">
+                    جایزه: {{ lottery.prize_coins }} سکه
+                </div>
+            </div>
+            <div class="p-6 flex-1 flex flex-col">
+                <p class="text-gray-500 dark:text-gray-400 text-sm mb-4 flex-1">{{ lottery.description|default:"بدون توضیحات" }}</p>
+                <div class="space-y-2 mb-6 text-sm text-gray-700 dark:text-gray-300">
+                    <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg">
+                        <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-4 h-4"></i> تاریخ قرعه‌کشی</span>
+                        <span dir="ltr" class="font-medium">{{ lottery.draw_date|date:"Y/m/d H:i" }}</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg">
+                        <span class="flex items-center gap-1"><i data-lucide="tag" class="w-4 h-4"></i> قیمت بلیت</span>
+                        <span class="font-medium text-yellow-500 flex items-center gap-1">{{ lottery.ticket_price }} <i data-lucide="coins" class="w-3 h-3"></i></span>
+                    </div>
+                </div>
+                <a href="{% url 'lottery_detail' lottery.id %}" class="block w-full py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-primary dark:hover:bg-primary hover:text-white font-bold rounded-xl transition-colors shadow-sm text-center">
+                    مشاهده و خرید بلیت
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-16 text-center bg-white dark:bg-surface-dark rounded-3xl border border-gray-100 dark:border-border-dark">
+            <i data-lucide="ticket" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">قرعه‌کشی فعالی وجود ندارد</h3>
+            <p class="text-gray-500 dark:text-gray-400">به زودی قرعه‌کشی‌های جدید اضافه خواهند شد.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

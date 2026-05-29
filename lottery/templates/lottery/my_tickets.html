@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}بلیت‌های من | دست‌دوستی{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">بلیت‌های من</h1>
+        <a href="{% url 'lottery_list' %}" class="text-sm text-gray-500 hover:text-primary transition-colors">بازگشت <i data-lucide="arrow-left" class="w-4 h-4 inline"></i></a>
+    </div>
+
+    <div class="bg-white dark:bg-surface-dark rounded-3xl shadow-sm border border-gray-100 dark:border-border-dark overflow-hidden p-6">
+        {% if tickets %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for ticket in tickets %}
+                <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 relative overflow-hidden">
+                    <div class="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-white dark:bg-surface-dark rounded-full border-r border-gray-200 dark:border-gray-700"></div>
+                    <div>
+                        <h4 class="font-bold text-sm text-gray-900 dark:text-white mb-1">{{ ticket.lottery.title }}</h4>
+                        <p class="text-xs text-gray-500" dir="ltr">{{ ticket.purchase_date|date:"Y/m/d H:i" }}</p>
+                    </div>
+                    <div class="text-left pr-4 border-r border-gray-200 dark:border-gray-700 border-dashed">
+                        <p class="font-mono font-bold text-gray-900 dark:text-white tracking-wider">{{ ticket.ticket_number }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <p class="text-gray-500">شما تاکنون بلیتی خریداری نکرده‌اید.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

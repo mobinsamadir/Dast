@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}اتاق بازی | دست‌دوستی{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-8 text-center">
+    <h1 class="text-3xl font-bold mb-4">اتاق بازی</h1>
+    <div class="w-full h-96 bg-gray-900 rounded-3xl flex items-center justify-center text-white border border-gray-800">
+        <p>محیط گرافیکی بازی در اینجا رندر می‌شود (Canvas/WebGL یا DOM)</p>
+    </div>
+    <a href="{% url 'games_lobby' %}" class="mt-8 inline-block text-primary">خروج از بازی</a>
+</div>
+<script>
+    const roomId = "{{ room.id }}";
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const gameSocket = new WebSocket(wsProtocol + '://' + window.location.host + '/ws/game/' + roomId + '/');
+</script>
+{% endblock %}
