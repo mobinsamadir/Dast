@@ -1,51 +1,57 @@
 services:
-  - type: web
-    name: dastdoosti-web
-    env: python
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
-    startCommand: "daphne -b 0.0.0.0 -p $PORT dastdoosti.asgi:application"
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.0
-      - key: DATABASE_URL
-        fromDatabase:
-          name: dastdoosti-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: dastdoosti-redis
-          property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DEBUG
-        value: "False"
-
-  - type: worker
-    name: dastdoosti-celery
-    env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "celery -A dastdoosti worker -l INFO"
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.0
-      - key: DATABASE_URL
-        fromDatabase:
-          name: dastdoosti-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: dastdoosti-redis
-          property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
-
+- type: web
+  name: dastdoosti-web
+  env: python
+  buildCommand: pip install -r requirements.txt && python manage.py collectstatic
+    --noinput && python manage.py migrate
+  startCommand: daphne -b 0.0.0.0 -p $PORT dastdoosti.asgi:application
+  envVars:
+  - key: PYTHON_VERSION
+    value: 3.12.0
+  - key: DATABASE_URL
+    fromDatabase:
+      name: dastdoosti-db
+      property: connectionString
+  - key: REDIS_URL
+    fromService:
+      type: redis
+      name: dastdoosti-redis
+      property: connectionString
+  - key: SECRET_KEY
+    generateValue: true
+  - key: DEBUG
+    value: 'False'
+  - key: VAPID_PRIVATE_KEY
+    sync: false
+  - key: VAPID_PUBLIC_KEY
+    sync: false
+- type: worker
+  name: dastdoosti-celery
+  env: python
+  buildCommand: pip install -r requirements.txt
+  startCommand: celery -A dastdoosti worker -l INFO
+  envVars:
+  - key: PYTHON_VERSION
+    value: 3.12.0
+  - key: DATABASE_URL
+    fromDatabase:
+      name: dastdoosti-db
+      property: connectionString
+  - key: REDIS_URL
+    fromService:
+      type: redis
+      name: dastdoosti-redis
+      property: connectionString
+  - key: SECRET_KEY
+    generateValue: true
+  - key: VAPID_PRIVATE_KEY
+    sync: false
+  - key: VAPID_PUBLIC_KEY
+    sync: false
 databases:
-  - name: dastdoosti-db
-    databaseName: dastdoosti
-    user: dastdoosti_user
-
-  - type: redis
-    name: dastdoosti-redis
-    ipAllowList: [] # internal only
+- name: dastdoosti-db
+  databaseName: dastdoosti
+  user: dastdoosti_user
+- type: redis
+  name: dastdoosti-redis
+  ipAllowList: []
