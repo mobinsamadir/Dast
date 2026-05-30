@@ -13,30 +13,42 @@ A comprehensive social networking and dating platform built with Django.
 - Superuser Server Health Dashboard & ZIP Backup
 - Custom Admin Panel using Jazzmin
 
-## Deployment
+## Running Locally
 
-### 🚀 Quick Start (GitHub Codespaces)
-You can run this project instantly in a fully configured web environment using GitHub Codespaces. No local setup is required!
+### 1. Simple Local Setup (No Docker)
+You can run this project locally using Python's built-in tools. This uses SQLite and runs everything synchronously (no Redis required for preview).
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/)
+```bash
+# 1. Create and activate a virtual environment (optional)
+# python3 -m venv venv
+# source venv/bin/activate  # On Windows use: venv\Scripts\activate
 
-Once the Codespace is ready, the development server will start automatically with a seeded database.
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Apply migrations and seed the database
+python manage.py migrate
+python manage.py seed_db
+
+# 4. Start the server
+python manage.py runserver
+```
+
+You can now open your browser to `http://localhost:8000`.
 - **Admin**: Phone: `09000000000`, Password: `admin`
 - **Test User**: Phone: `09111111111`, Password: `testuser`
 
-### Local Deployment
+### 2. Full Local Development (Docker Compose)
+If you have Docker installed, you can spin up the entire application (including Redis and Celery workers) with one command:
 
-**Preview Mode (SQLite, Sync Tasks, No Redis):**
 ```bash
-docker compose -f docker-compose.preview.yml up --build -d
-# Run seeds
-docker compose -f docker-compose.preview.yml exec web python manage.py seed_db
+docker compose up --build
 ```
+The site will be available at `http://localhost:8000`. The database is automatically seeded.
 
-**Production Mode (PostgreSQL, Redis, Celery):**
-Requires at least 2GB RAM.
-```bash
-cp .env.example .env
-# Edit .env with your secrets
-docker compose up --build -d
-```
+### 3. GitHub Codespaces
+You can run this project instantly in a fully configured web environment using GitHub Codespaces. No local setup is required!
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/mobinsamadir/Dast)
+
+Once the Codespace is ready, the development server will start automatically with a seeded database.

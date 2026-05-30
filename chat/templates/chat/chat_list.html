@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10 px-4">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold">گفتگوها</h2>
+        <div class="flex gap-2">
+            <a href="{% url 'create_group' %}" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded hover:bg-gray-300">گروه جدید</a>
+            <a href="{% url 'create_channel' %}" class="bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-500">کانال جدید</a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow divide-y">
+        {% for room in rooms %}
+        <a href="{% url 'chat_room' room.id %}" class="block p-4 hover:bg-gray-50 transition flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-xl flex-shrink-0">
+                {% if room.room_type == 'GROUP' %}👥
+                {% elif room.room_type == 'CHANNEL' %}📢
+                {% else %}👤{% endif %}
+            </div>
+            <div class="flex-grow">
+                <div class="flex justify-between items-baseline mb-1">
+                    <h3 class="font-bold text-gray-900">{{ room }}</h3>
+                    <span class="text-xs text-gray-500" dir="ltr">{{ room.created_at|date:"Y-m-d" }}</span>
+                </div>
+                <p class="text-sm text-gray-500 truncate">{{ room.room_type }}</p>
+            </div>
+        </a>
+        {% empty %}
+        <div class="p-8 text-center text-gray-500">
+            هنوز هیچ گفتگویی ندارید.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

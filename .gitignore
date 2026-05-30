@@ -10,3 +10,10 @@ staticfiles/
 */migrations/__pycache__
 *.pyc
 __pycache__/
+dastdoosti_backup.zip
+test_img.jpg
+htmlcov/
+.coverage
+docs/_build/
+final_test.txt
+test_output.txt

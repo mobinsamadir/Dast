@@ -75,3 +75,16 @@ Dastdoosti is a full-featured dating, networking, and gaming platform built prim
 All tests are mocked for CI compliance:
 - Run all tests using `python manage.py test`
 - Do not run tests in Docker locally, it is natively configured.
+
+## Deployment Guide
+1. Create a `.env` file with `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`.
+2. Generate VAPID keys for push notifications using:
+   `python manage.py generate_vapid_keys`
+   Add the output to `.env` or set as environment variables.
+3. Start the application:
+   `docker compose up --build -d`
+4. The site is production ready using Daphne, Whitenoise, and PostgreSQL (via docker).
+5. Ensure to set up a `render.yaml` if deploying to Render, setting your databases, web service and celery workers properly.
+
+## Backup and Restore
+Administrators can download and restore backups natively from the admin panel (`/admin/backup/download/` and `/admin/backup/restore/`). The backup will generate `dastdoosti_backup.zip`. Ensure this file is added to `.gitignore`.

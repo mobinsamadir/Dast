@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10 px-4">
+    <h2 class="text-3xl font-bold mb-6">تاریخچه تماس‌ها</h2>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full text-right border-collapse">
+            <thead>
+                <tr class="bg-gray-100 border-b">
+                    <th class="p-4 font-semibold text-gray-700">کاربر</th>
+                    <th class="p-4 font-semibold text-gray-700">نوع</th>
+                    <th class="p-4 font-semibold text-gray-700">وضعیت</th>
+                    <th class="p-4 font-semibold text-gray-700">زمان شروع</th>
+                    <th class="p-4 font-semibold text-gray-700">مدت زمان</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for call in calls %}
+                <tr class="hover:bg-gray-50">
+                    <td class="p-4 font-bold text-gray-900">
+                        {% if call.caller == request.user %}
+                            {% if call.receiver %}{{ call.receiver.display_name }}{% else %}ناشناس (تصادفی){% endif %}
+                        {% else %}
+                            {{ call.caller.display_name }}
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        {% if call.caller == request.user %}
+                        <span class="text-blue-600">↗ خروجی</span>
+                        {% else %}
+                        <span class="text-green-600">↙ ورودی</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 text-xs rounded-full {% if call.status == 'ACTIVE' %}bg-green-100 text-green-800{% elif call.status == 'WAITING' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ call.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-gray-500 text-sm" dir="ltr">
+                        {% if call.start_time %}{{ call.start_time|date:"Y-m-d H:i" }}{% else %}-{% endif %}
+                    </td>
+                    <td class="p-4 text-gray-500 text-sm" dir="ltr">
+                        {% if call.start_time and call.end_time %}
+                            {{ call.end_time|timeuntil:call.start_time }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="p-8 text-center text-gray-500">هیچ تماسی یافت نشد.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

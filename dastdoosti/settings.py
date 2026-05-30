@@ -1,3 +1,4 @@
+import os
 """
 Django settings for dastdoosti project.
 
@@ -20,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-b1hk!#3jb$n!i_-v_eo67e-rfwmhm4*9^c0)9u#lz3dl8o#5j^"
+SECRET_KEY = os.environ.get('SECRET_KEY', 'a_very_long_and_random_string_that_is_at_least_fifty_characters_long_1234567890')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -33,8 +34,10 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     "jazzmin",
     "daphne",
-    "django.contrib.admin",
     "django.contrib.auth",
+    "django_otp",
+    "django.contrib.admin",
+    "django_otp.plugins.otp_totp",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -72,6 +75,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -160,7 +164,7 @@ env = environ.Env(
 )
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-default-key-for-dev')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'a_very_long_and_random_string_that_is_at_least_fifty_characters_long_1234567890')
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 
@@ -215,9 +219,9 @@ else:
     }
 
 # Web Push VAPID keys
-VAPID_PRIVATE_KEY = env('VAPID_PRIVATE_KEY', default='vapid-private-key')
-VAPID_PUBLIC_KEY = env('VAPID_PUBLIC_KEY', default='vapid-public-key')
-VAPID_ADMIN_EMAIL = env('ADMIN_EMAIL', default='admin@example.com')
+VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')
+VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
+VAPID_ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
 
 # REST Framework configuration
 REST_FRAMEWORK = {
@@ -250,4 +254,12 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
 
 # Enforce secure secret key reading from env
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-z9y^71s4k1t4#&1i-q#9$#d+l(m*3u*v4y_@4$5r1g_e$8_g0_')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'a_very_long_and_random_string_that_is_at_least_fifty_characters_long_1234567890')
+
+
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG

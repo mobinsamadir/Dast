@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto mt-6 px-4 h-[calc(100vh-100px)] flex flex-col">
+    <!-- Header -->
+    <div class="bg-white rounded-t-lg shadow-sm border-b p-4 flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">
+                {% if room.room_type == 'GROUP' %}👥
+                {% elif room.room_type == 'CHANNEL' %}📢
+                {% else %}👤{% endif %}
+            </div>
+            <div>
+                <h3 class="font-bold text-gray-900">{{ room }}</h3>
+                <p class="text-xs text-gray-500">{{ room.get_room_type_display }}</p>
+            </div>
+        </div>
+        {% if room.admin == request.user %}
+            {% if room.room_type == 'GROUP' %}
+            <a href="{% url 'group_settings' room.id %}" class="text-sm text-gray-600 hover:text-red-600">تنظیمات</a>
+            {% elif room.room_type == 'CHANNEL' %}
+            <a href="{% url 'channel_settings' room.id %}" class="text-sm text-gray-600 hover:text-red-600">تنظیمات</a>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <!-- Messages Area -->
+    <div id="chat-messages" class="flex-grow bg-gray-50 p-4 overflow-y-auto flex flex-col gap-3">
+        {% for message in messages %}
+            <div class="flex flex-col {% if message.sender == request.user %}items-end{% else %}items-start{% endif %}" id="msg-{{ message.id }}">
+                <div class="max-w-[80%] rounded-2xl p-3 {% if message.sender == request.user %}bg-red-600 text-white rounded-br-none{% else %}bg-white shadow-sm border border-gray-100 text-gray-800 rounded-bl-none{% endif %}">
+                    {% if message.reply_to %}
+                    <div class="mb-2 p-2 rounded bg-black/10 text-xs border-r-2 border-white/50">
+                        <span class="font-bold block opacity-75">{{ message.reply_to.sender.display_name }}</span>
+                        <span class="truncate opacity-90">{{ message.reply_to.text|truncatechars:30 }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if room.room_type != 'PRIVATE' and message.sender != request.user %}
+                        <div class="text-xs font-bold mb-1 opacity-75">{{ message.sender.display_name }}</div>
+                    {% endif %}
+
+                    <div class="break-words">{{ message.text }}</div>
+
+                    <div class="text-[10px] opacity-70 mt-1 text-right flex justify-end items-center gap-1">
+                        <span dir="ltr">{{ message.timestamp|date:"H:i" }}</span>
+                        {% if message.sender == request.user %}
+                            {% if request.user in message.read_by.all or message.read_by.count > 0 %}
+                                <span class="text-blue-300">✓✓</span>
+                            {% else %}
+                                <span>✓</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Input Area -->
+    <div class="bg-white rounded-b-lg shadow-sm border-t p-3">
+        {% if room.room_type == 'CHANNEL' and room.admin != request.user %}
+            <div class="text-center text-gray-500 py-2">شما امکان ارسال پیام در این کانال را ندارید.</div>
+        {% else %}
+            <div id="reply-preview" class="hidden mb-2 p-2 bg-gray-100 rounded text-sm flex justify-between items-center">
+                <div>
+                    <span class="font-bold text-gray-700 block text-xs">در پاسخ به:</span>
+                    <span id="reply-text" class="text-gray-600 truncate"></span>
+                </div>
+                <button onclick="cancelReply()" class="text-gray-500 hover:text-red-500">×</button>
+            </div>
+            <div class="flex items-end gap-2">
+                <input type="hidden" id="reply-id" value="">
+                <button type="button" class="p-2 text-gray-400 hover:text-gray-600 shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                </button>
+                <textarea id="chat-input" rows="1" class="flex-grow border border-gray-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="پیام خود را بنویسید..."></textarea>
+
+                <!-- Voice Record Button (UI placeholder) -->
+                <button type="button" id="record-btn" class="p-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 shrink-0 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                </button>
+
+                <!-- Send Button -->
+                <button type="button" id="send-btn" class="p-3 bg-red-600 text-white rounded-xl hover:bg-red-500 shrink-0 transition hidden">
+                    <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    const roomId = "{{ room.id }}";
+    const currentPhone = "{{ request.user.phone_number }}";
+    const currentDisplayName = "{{ request.user.display_name }}";
+    const chatSocket = new WebSocket((window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws/chat/' + roomId + '/');
+
+    const messagesArea = document.querySelector('#chat-messages');
+    const chatInput = document.querySelector('#chat-input');
+    const sendBtn = document.querySelector('#send-btn');
+    const recordBtn = document.querySelector('#record-btn');
+
+    function scrollToBottom() {
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+    scrollToBottom();
+
+    if(chatInput) {
+        chatInput.addEventListener('input', function() {
+            if(this.value.trim() !== '') {
+                sendBtn.classList.remove('hidden');
+                recordBtn.classList.add('hidden');
+            } else {
+                sendBtn.classList.add('hidden');
+                recordBtn.classList.remove('hidden');
+            }
+        });
+
+        sendBtn.addEventListener('click', function() {
+            const message = chatInput.value;
+            const replyToId = document.getElementById('reply-id').value;
+            if (message.trim() !== '') {
+                chatSocket.send(JSON.stringify({
+                    'action': 'send_message',
+                    'text': message,
+                    'reply_to': replyToId ? replyToId : null
+                }));
+                chatInput.value = '';
+                cancelReply();
+                sendBtn.classList.add('hidden');
+                recordBtn.classList.remove('hidden');
+            }
+        });
+
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+    }
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        if (data.action === 'new_message') {
+            const isMe = data.sender === currentPhone;
+            const alignClass = isMe ? 'items-end' : 'items-start';
+            const bgClass = isMe ? 'bg-red-600 text-white rounded-br-none' : 'bg-white shadow-sm border border-gray-100 text-gray-800 rounded-bl-none';
+            const time = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', hour12: false});
+
+            let html = `
+            <div class="flex flex-col ${alignClass}" id="msg-${data.message_id}">
+                <div class="max-w-[80%] rounded-2xl p-3 ${bgClass}">
+            `;
+
+            if(!isMe && "{{ room.room_type }}" !== "PRIVATE") {
+                html += `<div class="text-xs font-bold mb-1 opacity-75">${data.sender}</div>`; // In real app, send display_name
+            }
+
+            html += `
+                    <div class="break-words">${data.message}</div>
+                    <div class="text-[10px] opacity-70 mt-1 text-right flex justify-end items-center gap-1">
+                        <span dir="ltr">${time}</span>
+                        ${isMe ? '<span>✓</span>' : ''}
+                    </div>
+                </div>
+            </div>`;
+
+            messagesArea.insertAdjacentHTML('beforeend', html);
+            scrollToBottom();
+
+            if(!isMe) {
+                chatSocket.send(JSON.stringify({
+                    'action': 'read_receipt',
+                    'message_id': data.message_id
+                }));
+            }
+        } else if (data.action === 'read_receipt') {
+            // Update checkmarks (simplistic approach)
+            const msgEl = document.getElementById(`msg-${data.message_id}`);
+            if(msgEl) {
+                const checks = msgEl.querySelector('.text-\\[10px\\]');
+                if(checks && checks.innerHTML.includes('✓')) {
+                    checks.innerHTML = checks.innerHTML.replace('✓', '<span class="text-blue-300">✓✓</span>');
+                }
+            }
+        }
+    };
+
+    function cancelReply() {
+        document.getElementById('reply-preview').classList.add('hidden');
+        document.getElementById('reply-id').value = '';
+    }
+</script>
+{% endblock %}
