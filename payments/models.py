@@ -4,8 +4,12 @@ from django.conf import settings
 class PaymentTransaction(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='payments')
     amount = models.DecimalField(max_digits=12, decimal_places=0)
-    receipt_image = models.ImageField(upload_to='payments/receipts/')
+    receipt_image = models.ImageField(upload_to='payments/receipts/', blank=True, null=True)
     tracking_code = models.CharField(max_length=100, blank=True, null=True)
+
+    # Store what they bought so we can grant it on approval
+    # e.g., 'plan_1', 'coins_5'
+    target_item = models.CharField(max_length=100, blank=True, null=True)
 
     STATUS_CHOICES = (
         ('Pending', 'Pending'),

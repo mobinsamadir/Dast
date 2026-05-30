@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="h-screen w-full bg-black fixed inset-0 z-50 flex flex-col">
+    <!-- Top Bar -->
+    <div class="bg-gradient-to-b from-black/80 to-transparent p-4 flex justify-between items-center text-white z-20">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'landing' %}" id="back-btn" class="p-2 hover:bg-white/20 rounded-full transition hidden">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </a>
+            <div>
+                <h3 class="font-bold text-lg">
+                    {% if call.caller == request.user and call.receiver %}
+                        {{ call.receiver.display_name }}
+                    {% elif call.receiver == request.user %}
+                        {{ call.caller.display_name }}
+                    {% else %}
+                        ناشناس
+                    {% endif %}
+                </h3>
+                <p id="call-timer" class="text-sm opacity-75 font-mono" dir="ltr">00:00</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <span class="bg-red-600/80 px-3 py-1 rounded-full text-xs font-bold animate-pulse">هزینه: {{ call.cost_per_minute }} سکه/دقیقه</span>
+        </div>
+    </div>
+
+    <!-- Screenshot Warning -->
+    <div id="screenshot-warning" class="absolute top-20 left-1/2 -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm z-30 opacity-0 transition-opacity duration-300 shadow-lg border border-red-400">
+        ⚠️ هشدار: تصویربرداری از صفحه ممنوع است!
+    </div>
+
+    <!-- Video Area -->
+    <div class="flex-grow relative bg-gray-900 flex items-center justify-center overflow-hidden">
+        <!-- Remote Video -->
+        <video id="remote-video" class="w-full h-full object-cover" autoplay playsinline></video>
+
+        <!-- Local Video -->
+        <div class="absolute bottom-24 right-4 w-24 md:w-32 lg:w-48 aspect-[3/4] bg-gray-800 rounded-xl overflow-hidden shadow-2xl border-2 border-white/20 z-20">
+            <video id="local-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
+        </div>
+
+        <!-- Waiting State -->
+        <div id="waiting-state" class="absolute inset-0 flex flex-col items-center justify-center z-10 bg-gray-900">
+            <div class="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p class="text-white font-bold">در حال برقراری ارتباط...</p>
+        </div>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="bg-gradient-to-t from-black/90 to-transparent p-6 flex justify-center items-center gap-6 z-20 pb-safe">
+        <button id="toggle-audio" class="w-14 h-14 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+        </button>
+
+        <button id="end-call" class="w-16 h-16 bg-red-600 hover:bg-red-500 shadow-lg shadow-red-600/30 rounded-full flex items-center justify-center text-white transition transform hover:scale-105">
+            <svg class="w-8 h-8 rotate-[135deg]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+        </button>
+
+        <button id="toggle-video" class="w-14 h-14 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        </button>
+    </div>
+</div>
+
+<script>
+    const roomId = "{{ room_id }}";
+    const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws/call/' + roomId + '/';
+    let callSocket;
+
+    let localStream;
+    let peerConnection;
+
+    const localVideo = document.getElementById('local-video');
+    const remoteVideo = document.getElementById('remote-video');
+    const waitingState = document.getElementById('waiting-state');
+    const backBtn = document.getElementById('back-btn');
+    const timerEl = document.getElementById('call-timer');
+    const screenshotWarning = document.getElementById('screenshot-warning');
+
+    // Timer
+    let callSeconds = 0;
+    let timerInterval;
+
+    function startTimer() {
+        if(timerInterval) return;
+        timerInterval = setInterval(() => {
+            callSeconds++;
+            const mins = Math.floor(callSeconds / 60).toString().padStart(2, '0');
+            const secs = (callSeconds % 60).toString().padStart(2, '0');
+            timerEl.innerText = `${mins}:${secs}`;
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
+
+    // Google STUN servers
+    const configuration = {
+        'iceServers': [
+            {'urls': 'stun:stun.l.google.com:19302'}
+        ]
+    };
+
+    async function initCall() {
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            localVideo.srcObject = localStream;
+
+            callSocket = new WebSocket(wsUrl);
+
+            callSocket.onopen = () => {
+                // If I am the caller and I joined, I could send an offer right away,
+                // but usually we wait for both to be ready.
+                // Simplified: caller creates offer.
+                if ("{{ call.caller.id }}" === "{{ request.user.id }}") {
+                    setTimeout(createOffer, 2000); // Wait a bit for receiver to join
+                }
+            };
+
+            callSocket.onmessage = async (e) => {
+                const data = JSON.parse(e.data);
+
+                if (data.type === 'end_call') {
+                    alert('تماس پایان یافت: ' + data.reason);
+                    endCallLocally();
+                    return;
+                }
+
+                if (!peerConnection) createPeerConnection();
+
+                if (data.offer) {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+                    callSocket.send(JSON.stringify({'answer': answer}));
+                } else if (data.answer) {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                } else if (data.iceCandidate) {
+                    try {
+                        await peerConnection.addIceCandidate(data.iceCandidate);
+                    } catch (e) {
+                        console.error('Error adding received ice candidate', e);
+                    }
+                }
+            };
+
+            callSocket.onclose = (e) => {
+                if(e.code === 4002) {
+                    alert('موجودی سکه شما کافی نیست.');
+                    window.location.href = "{% url 'buy_coins' %}";
+                } else {
+                    endCallLocally();
+                }
+            };
+
+        } catch (error) {
+            console.error('Error accessing media devices.', error);
+            alert('دسترسی به دوربین/میکروفون امکان‌پذیر نیست.');
+        }
+    }
+
+    function createPeerConnection() {
+        peerConnection = new RTCPeerConnection(configuration);
+
+        peerConnection.onicecandidate = event => {
+            if (event.candidate) {
+                callSocket.send(JSON.stringify({'iceCandidate': event.candidate}));
+            }
+        };
+
+        peerConnection.ontrack = event => {
+            remoteVideo.srcObject = event.streams[0];
+            waitingState.classList.add('hidden');
+            startTimer();
+        };
+
+        peerConnection.oniceconnectionstatechange = () => {
+            if (peerConnection.iceConnectionState === 'disconnected' || peerConnection.iceConnectionState === 'failed') {
+                endCallLocally();
+            }
+        };
+
+        localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+        });
+    }
+
+    async function createOffer() {
+        createPeerConnection();
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        callSocket.send(JSON.stringify({'offer': offer}));
+    }
+
+    function endCallLocally() {
+        stopTimer();
+        if(peerConnection) peerConnection.close();
+        if(localStream) localStream.getTracks().forEach(track => track.stop());
+        if(callSocket && callSocket.readyState === WebSocket.OPEN) callSocket.close();
+
+        waitingState.classList.remove('hidden');
+        waitingState.innerHTML = '<p class="text-white font-bold mb-4">تماس پایان یافت.</p>';
+        backBtn.classList.remove('hidden');
+    }
+
+    document.getElementById('end-call').addEventListener('click', endCallLocally);
+
+    // Toggles
+    let audioEnabled = true;
+    document.getElementById('toggle-audio').addEventListener('click', function() {
+        audioEnabled = !audioEnabled;
+        localStream.getAudioTracks()[0].enabled = audioEnabled;
+        this.classList.toggle('bg-red-500', !audioEnabled);
+    });
+
+    let videoEnabled = true;
+    document.getElementById('toggle-video').addEventListener('click', function() {
+        videoEnabled = !videoEnabled;
+        localStream.getVideoTracks()[0].enabled = videoEnabled;
+        this.classList.toggle('bg-red-500', !videoEnabled);
+    });
+
+    // Detect screenshot attempts (heuristic: PrintScreen key, visibilitychange)
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'PrintScreen') {
+            showScreenshotWarning();
+        }
+    });
+    document.addEventListener('visibilitychange', () => {
+        if(document.hidden) {
+            showScreenshotWarning();
+        }
+    });
+
+    function showScreenshotWarning() {
+        screenshotWarning.style.opacity = '1';
+        setTimeout(() => {
+            screenshotWarning.style.opacity = '0';
+        }, 3000);
+    }
+
+    // Start
+    initCall();
+</script>
+{% endblock %}

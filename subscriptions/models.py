@@ -12,13 +12,13 @@ class Plan(models.Model):
 
 class Subscription(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='subscriptions')
-    plan = models.ForeignKey(Plan, on_delete=models.CASCADE)
+    plan = models.ForeignKey(Plan, on_delete=models.CASCADE, null=True, blank=True)
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField()
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.user.phone_number} - {self.plan.name}"
+        return f"{self.user.phone_number} - {self.plan.name if self.plan else 'Unknown'}"
 
 class Wallet(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wallet')
@@ -30,6 +30,8 @@ class Wallet(models.Model):
 class CoinTransaction(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions')
     amount = models.IntegerField()
+    before_balance = models.IntegerField(default=0)
+    after_balance = models.IntegerField(default=0)
 
     TYPE_CHOICES = (
         ('Deposit', 'Deposit'),
@@ -58,3 +60,11 @@ class UserGift(models.Model):
     receiver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='gifts_received')
     gift_packet = models.ForeignKey(GiftPacket, on_delete=models.CASCADE)
     sent_at = models.DateTimeField(auto_now_add=True)
+
+class CoinPackage(models.Model):
+    name = models.CharField(max_length=100)
+    coins = models.IntegerField()
+    price = models.DecimalField(max_digits=12, decimal_places=0)
+
+    def __str__(self):
+        return f"{self.coins} Coins for {self.price}"

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-xl mx-auto bg-white rounded-lg shadow-md p-8 mt-10">
+    <h2 class="text-2xl font-bold mb-6 text-center">ثبت‌نام - مرحله {{ wizard.steps.step1 }} از {{ wizard.steps.count }}</h2>
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ wizard.management_form }}
+        {% if wizard.form.forms %}
+            {{ wizard.form.management_form }}
+            {% for form in wizard.form.forms %}
+                {{ form.as_p }}
+            {% endfor %}
+        {% else %}
+            {{ wizard.form.as_p }}
+        {% endif %}
+        <div class="mt-6 flex justify-between">
+            {% if wizard.steps.prev %}
+            <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}" class="bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded hover:bg-gray-400">ابتدا</button>
+            <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}" class="bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded hover:bg-gray-400">قبلی</button>
+            {% endif %}
+            <button type="submit" class="bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-500">{% if wizard.steps.current == wizard.steps.last %}ثبت‌نام{% else %}بعدی{% endif %}</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

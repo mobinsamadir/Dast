@@ -7,9 +7,8 @@ from chat.models import Message
 from chat.api.serializers import MessageSerializer
 from django.utils.dateparse import parse_datetime
 
-@api_view(['GET'])
-
 @extend_schema(responses={200: dict})
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def sync_view(request):
     """

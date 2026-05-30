@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10 px-4">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <h2 class="text-2xl font-bold mb-6">ارسال هدیه به {{ receiver.display_name }}</h2>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                {% for gift in gifts %}
+                <label class="cursor-pointer">
+                    <input type="radio" name="gift_id" value="{{ gift.id }}" class="peer hidden" required>
+                    <div class="border-2 rounded-xl p-4 text-center peer-checked:border-red-500 peer-checked:bg-red-50 transition">
+                        <div class="w-16 h-16 mx-auto mb-2">
+                            {% if gift.icon %}
+                            <img src="{{ gift.icon.url }}" alt="{{ gift.name }}" class="w-full h-full object-cover rounded-lg">
+                            {% else %}
+                            <div class="w-full h-full bg-pink-100 rounded-lg flex items-center justify-center text-2xl">🎁</div>
+                            {% endif %}
+                        </div>
+                        <h4 class="font-bold text-sm">{{ gift.name }}</h4>
+                        <p class="text-xs text-red-600 mt-1">{{ gift.price }} سکه</p>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-500">ارسال هدیه</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

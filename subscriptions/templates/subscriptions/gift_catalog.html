@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-6xl mx-auto mt-10 px-4">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold mb-4">هدایا</h2>
+        <p class="text-gray-600">هدیه بخرید و برای دوستان خود ارسال کنید</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+        {% for gift in gifts %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center hover:shadow-md transition">
+            <div class="w-20 h-20 mx-auto mb-4">
+                {% if gift.icon %}
+                <img src="{{ gift.icon.url }}" alt="{{ gift.name }}" class="w-full h-full object-cover rounded-lg">
+                {% else %}
+                <div class="w-full h-full bg-pink-100 rounded-lg flex items-center justify-center text-3xl">🎁</div>
+                {% endif %}
+            </div>
+            <h3 class="text-lg font-bold mb-2">{{ gift.name }}</h3>
+            <p class="text-red-600 font-bold mb-4">{{ gift.price }} سکه</p>
+        </div>
+        {% empty %}
+        <p class="col-span-4 text-center text-gray-500">هدیه‌ای یافت نشد.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

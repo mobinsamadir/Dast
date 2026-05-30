@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto mt-10 px-4">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <h2 class="text-2xl font-bold mb-6 text-center">ساخت {% if room_type == 'GROUP' %}گروه{% else %}کانال{% endif %}</h2>
+        <div class="bg-red-50 p-4 rounded mb-6 text-sm text-red-800 text-center border border-red-100">
+            هزینه ساخت: <strong>{{ cost }} سکه</strong>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-6">
+                <label class="block text-gray-700 font-bold mb-2">نام {% if room_type == 'GROUP' %}گروه{% else %}کانال{% endif %}</label>
+                <input type="text" name="name" required class="w-full border p-2 rounded focus:ring-red-500 focus:border-red-500">
+            </div>
+
+            <button type="submit" class="w-full bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-500">تایید و کسر سکه</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

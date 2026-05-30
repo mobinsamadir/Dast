@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-6xl mx-auto mt-10 px-4">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold mb-4">ارتقا به حساب ویژه</h2>
+        <p class="text-gray-600">با خرید اشتراک به امکانات نامحدود دسترسی پیدا کنید</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        {% for plan in plans %}
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:border-red-500 transition-colors relative flex flex-col">
+            <h3 class="text-2xl font-bold mb-2">{{ plan.name }}</h3>
+            <p class="text-gray-500 mb-6">{{ plan.duration_days }} روزه</p>
+            <div class="text-4xl font-extrabold text-gray-900 mb-6" dir="ltr">
+                {{ plan.price }} <span class="text-lg text-gray-500 font-normal">تومان</span>
+            </div>
+            <p class="text-gray-600 mb-8 flex-grow">{{ plan.description }}</p>
+            <a href="{% url 'upload_receipt' %}?target=plan_{{ plan.id }}&amount={{ plan.price }}" class="block w-full bg-red-600 text-white text-center font-bold py-3 rounded-xl hover:bg-red-700 transition">
+                خرید از طریق واریز بانکی
+            </a>
+            <!-- Zarinpal button ready for future integration
+            <form method="POST" action="/api/v1/payments/request/">
+                <input type="hidden" name="target" value="plan_{{ plan.id }}">
+                <button type="submit" class="mt-3 block w-full bg-blue-600 text-white text-center font-bold py-3 rounded-xl hover:bg-blue-700 transition">پرداخت آنلاین</button>
+            </form>
+            -->
+        </div>
+        {% empty %}
+        <p class="col-span-3 text-center text-gray-500">طرحی یافت نشد.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

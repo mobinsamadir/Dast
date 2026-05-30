@@ -5,6 +5,14 @@ from backup.views import download_backup
 from core.views import landing_page
 from django.conf import settings
 from django.conf.urls.static import static
+from django_otp.admin import OTPAdminSite
+
+# Wrap the default admin site with OTPAdminSite
+class OTPAdmin(OTPAdminSite):
+    pass
+
+admin.site.__class__ = OTPAdmin
+admin.site.name = 'otpadmin'
 
 urlpatterns = [
     path('', landing_page, name='landing'),

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-8 mt-10">
+    <h2 class="text-2xl font-bold mb-6 text-center">ثبت رسید واریز بانکی</h2>
+    <div class="bg-gray-50 p-4 rounded mb-6 text-sm text-gray-700">
+        لطفا مبلغ <strong dir="ltr">{{ amount }}</strong> تومان را به شماره کارت زیر واریز کرده و تصویر رسید را آپلود کنید:<br>
+        <span class="block mt-2 font-mono text-center text-lg font-bold">1234-5678-9012-3456</span>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="target_item" value="{{ target_item }}">
+        <input type="hidden" name="amount" value="{{ amount }}">
+
+        <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2">تصویر رسید</label>
+            <input type="file" name="receipt_image" accept="image/*" required class="w-full border p-2 rounded">
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 font-bold mb-2">کد پیگیری (اختیاری)</label>
+            <input type="text" name="tracking_code" class="w-full border p-2 rounded">
+        </div>
+
+        <button type="submit" class="w-full bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-500">ثبت رسید</button>
+    </form>
+</div>
+{% endblock %}

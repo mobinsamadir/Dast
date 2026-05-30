@@ -5,6 +5,7 @@ from .models import Call
 from subscriptions.models import Wallet
 from django.utils import timezone
 import asyncio
+from asgiref.sync import sync_to_async
 
 class WebRTCConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -16,9 +17,16 @@ class WebRTCConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
+        call = await self.get_call()
+        if not call:
+            await self.close()
+            return
+
+        self.cost_per_minute = call.cost_per_minute
+
         # Basic validation: check wallet balance
         balance = await self.get_wallet_balance(self.user)
-        if balance < 10:
+        if balance < self.cost_per_minute:
             await self.close(code=4002) # Custom code for insufficient funds
             return
 
@@ -28,6 +36,8 @@ class WebRTCConsumer(AsyncWebsocketConsumer):
         )
         await self.accept()
 
+        await self.mark_call_active()
+
         # Start billing task
         self.billing_task = asyncio.create_task(self.bill_user_periodically())
 
@@ -36,6 +46,7 @@ class WebRTCConsumer(AsyncWebsocketConsumer):
             self.billing_task.cancel()
 
         if not self.scope['user'].is_anonymous:
+            await self.mark_call_ended()
             await self.channel_layer.group_discard(
                 self.room_group_name,
                 self.channel_name
@@ -61,17 +72,42 @@ class WebRTCConsumer(AsyncWebsocketConsumer):
 
     async def bill_user_periodically(self):
         """Deducts coins every 60 seconds. Ends call if wallet is empty."""
-        cost_per_minute = 20 # Can be fetched from settings/Call model
         try:
             while True:
                 await asyncio.sleep(60) # Wait 1 minute
-                success = await self.deduct_call_cost(self.user, cost_per_minute)
+                success = await self.deduct_call_cost(self.user, self.cost_per_minute)
                 if not success:
                     # Notify client to end call due to insufficient funds
                     await self.send(text_data=json.dumps({'type': 'end_call', 'reason': 'insufficient_funds'}))
                     await self.close()
                     break
         except asyncio.CancelledError:
+            pass
+
+    @database_sync_to_async
+    def get_call(self):
+        try:
+            return Call.objects.get(id=self.room_id)
+        except Call.DoesNotExist:
+            return None
+
+    @database_sync_to_async
+    def mark_call_active(self):
+        call = Call.objects.get(id=self.room_id)
+        if call.status == 'WAITING':
+            call.status = 'ACTIVE'
+            call.start_time = timezone.now()
+            call.save()
+
+    @database_sync_to_async
+    def mark_call_ended(self):
+        try:
+            call = Call.objects.get(id=self.room_id)
+            if call.status == 'ACTIVE':
+                call.status = 'ENDED'
+                call.end_time = timezone.now()
+                call.save()
+        except Call.DoesNotExist:
             pass
 
     @database_sync_to_async
