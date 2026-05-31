@@ -173,3 +173,29 @@ def nearby_users(request):
     ).order_by('distance')[:20]
 
     return render(request, 'accounts/nearby.html', {'users': users})
+
+@login_required
+def my_profile(request):
+    if request.method == 'POST':
+        # Simple update logic (can be expanded with a form)
+        user = request.user
+
+        # Helper function to get POST data or keep existing if empty
+        def get_val(key, existing):
+            val = request.POST.get(key)
+            return val if val else existing
+
+        user.display_name = get_val('display_name', user.display_name)
+        user.bio = get_val('bio', user.bio)
+        user.city = get_val('city', user.city)
+        user.province = get_val('province', user.province)
+        user.age = get_val('age', user.age)
+
+        if 'profile_picture' in request.FILES:
+            user.profile_picture = request.FILES['profile_picture']
+
+        user.save()
+        messages.success(request, 'پروفایل شما با موفقیت بروزرسانی شد.')
+        return redirect('my_profile')
+
+    return render(request, 'accounts/my_profile.html', {'user': request.user})

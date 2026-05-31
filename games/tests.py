@@ -3,6 +3,9 @@ from accounts.models import CustomUser
 from subscriptions.models import Subscription, Plan, Wallet
 from games.models import GameRoom, TruthDareQuestion
 
+from django.test import override_settings
+
+@override_settings(SECURE_SSL_REDIRECT=False)
 class GamesViewsTests(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create_user(

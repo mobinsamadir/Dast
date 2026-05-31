@@ -84,8 +84,8 @@ class RegistrationWizardTest(TestCase):
             'step2-first_name': 'Test2',
             'step2-last_name': 'User2',
             'step2-display_name': 'TestUser2',
-            'step2-gender': 'Male',
-            'step2-birth_date': '1990-01-01',
+            'step2-gender': 'مرد',
+            'step2-age': '25',
         }
         response = client.post(reverse('register_wizard'), data)
         self.assertEqual(response.status_code, 200) # Should be on step 3
@@ -93,7 +93,7 @@ class RegistrationWizardTest(TestCase):
         # Step 3
         data = {
             'registration_wizard-current_step': 'step3',
-            'step3-marital_status': 'Single',
+            'step3-marital_status': 'مجرد',
             'step3-children_count': 0,
             'step3-eldest_child_age': '',
         }
@@ -105,9 +105,9 @@ class RegistrationWizardTest(TestCase):
             'registration_wizard-current_step': 'step4',
             'step4-height': '180',
             'step4-weight': '75',
-            'step4-skin_color': 'White',
+            'step4-skin_color': 'سفید',
             'step4-beauty': 4,
-            'step4-style': 'Other',
+            'step4-style': 'سایر',
             'step4-health_status': 'Good',
         }
         response = client.post(reverse('register_wizard'), data)
@@ -116,10 +116,10 @@ class RegistrationWizardTest(TestCase):
         # Step 5
         data = {
             'registration_wizard-current_step': 'step5',
-            'step5-income': 'Average',
-            'step5-car_status': 'No',
-            'step5-housing_status': 'Rent',
-            'step5-lifestyle': 'Independent',
+            'step5-income': 'کمتر از ۱۰ میلیون تومان',
+            'step5-car_status': 'ندارم',
+            'step5-housing_status': 'اجاره‌ای',
+            'step5-lifestyle': 'مستقل',
         }
         response = client.post(reverse('register_wizard'), data)
         self.assertEqual(response.status_code, 200)
@@ -127,8 +127,8 @@ class RegistrationWizardTest(TestCase):
         # Step 6
         data = {
             'registration_wizard-current_step': 'step6',
-            'step6-province': 'Tehran',
-            'step6-city': 'Tehran',
+            'step6-province': 'تهران',
+            'step6-city': 'تهران',
             'step6-location_lat': '35.6892',
             'step6-location_lng': '51.3890',
             'step6-show_location': 'on',
@@ -141,8 +141,8 @@ class RegistrationWizardTest(TestCase):
             'registration_wizard-current_step': 'step7',
             'step7-bio': 'Hello World',
             'step7-spouse_expectation': 'Nothing',
-            'step7-seeking': 'Friend',
-            'step7-target_gender': 'Female',
+            'step7-seeking': 'دوست',
+            'step7-target_gender': 'زن',
             'step7-security_phrase': 'Cat',
             'step7-referral_code': '',
         }
@@ -152,4 +152,4 @@ class RegistrationWizardTest(TestCase):
 
         user = CustomUser.objects.get(phone_number='09123456781')
         self.assertEqual(user.first_name, 'Test2')
-        self.assertEqual(user.city, 'Tehran')
+        self.assertEqual(user.city, 'تهران')

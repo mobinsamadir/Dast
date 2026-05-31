@@ -11,67 +11,96 @@ def user_directory_path(instance, filename):
 
 class CustomUser(AbstractUser):
     username = None # Remove standard username
-    phone_number = models.CharField(max_length=15, unique=True)
+    phone_number = models.CharField(max_length=15, unique=True, verbose_name="شماره موبایل")
 
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    display_name = models.CharField(max_length=150)
+    first_name = models.CharField(max_length=150, verbose_name="نام")
+    last_name = models.CharField(max_length=150, verbose_name="نام خانوادگی")
+    display_name = models.CharField(max_length=150, verbose_name="نام نمایشی")
 
-    GENDER_CHOICES = (('Male', 'Male'), ('Female', 'Female'))
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
+    GENDER_CHOICES = (('مرد', 'مرد'), ('زن', 'زن'))
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True, verbose_name="جنسیت")
 
-    birth_date = models.DateField(null=True, blank=True)
+    AGE_CHOICES = [(i, f"{i} سال") for i in range(18, 100)]
+    age = models.IntegerField(choices=AGE_CHOICES, null=True, blank=True, verbose_name="سن")
 
-    MARITAL_CHOICES = (('Single', 'Single'), ('Married', 'Married'), ('Divorced', 'Divorced'), ('Widowed', 'Widowed'))
-    marital_status = models.CharField(max_length=20, choices=MARITAL_CHOICES, null=True, blank=True)
+    MARITAL_CHOICES = (('مجرد', 'مجرد'), ('متاهل', 'متاهل'), ('مطلقه', 'مطلقه'), ('همسر فوت شده', 'همسر فوت شده'))
+    marital_status = models.CharField(max_length=20, choices=MARITAL_CHOICES, null=True, blank=True, verbose_name="وضعیت تاهل")
 
-    children_count = models.IntegerField(default=0)
-    eldest_child_age = models.IntegerField(null=True, blank=True)
+    children_count = models.IntegerField(default=0, verbose_name="تعداد فرزندان")
+    eldest_child_age = models.IntegerField(null=True, blank=True, verbose_name="سن بزرگترین فرزند")
 
-    height = models.FloatField(null=True, blank=True)
-    weight = models.FloatField(null=True, blank=True)
-    skin_color = models.CharField(max_length=50, null=True, blank=True)
-    beauty = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], null=True, blank=True)
+    height = models.FloatField(null=True, blank=True, verbose_name="قد (سانتی‌متر)")
+    weight = models.FloatField(null=True, blank=True, verbose_name="وزن (کیلوگرم)")
 
-    STYLE_CHOICES = (('Hijab', 'Hijab'), ('Non_Hijab', 'Non_Hijab'), ('Other', 'Other'))
-    style = models.CharField(max_length=20, choices=STYLE_CHOICES, null=True, blank=True)
+    SKIN_COLOR_CHOICES = (
+        ('سفید', 'سفید'),
+        ('گندمی', 'گندمی'),
+        ('سبزه روشن', 'سبزه روشن'),
+        ('سبزه تیره', 'سبزه تیره'),
+        ('سیاه', 'سیاه'),
+    )
+    skin_color = models.CharField(max_length=50, choices=SKIN_COLOR_CHOICES, null=True, blank=True, verbose_name="رنگ پوست")
+    beauty = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], null=True, blank=True, verbose_name="میزان زیبایی (از ۱ تا ۵)")
 
-    health_status = models.CharField(max_length=150, null=True, blank=True)
-    income = models.CharField(max_length=100, null=True, blank=True)
-    car_status = models.CharField(max_length=100, null=True, blank=True)
-    housing_status = models.CharField(max_length=100, null=True, blank=True)
+    STYLE_CHOICES = (('محجبه', 'محجبه'), ('بدون حجاب', 'بدون حجاب'), ('سایر', 'سایر'))
+    style = models.CharField(max_length=20, choices=STYLE_CHOICES, null=True, blank=True, verbose_name="سبک پوشش")
 
-    LIFESTYLE_CHOICES = (('With_Family', 'With Family'), ('Independent', 'Independent'))
-    lifestyle = models.CharField(max_length=20, choices=LIFESTYLE_CHOICES, null=True, blank=True)
+    health_status = models.CharField(max_length=150, null=True, blank=True, verbose_name="وضعیت سلامتی")
 
-    province = models.CharField(max_length=100, null=True, blank=True)
-    city = models.CharField(max_length=100, null=True, blank=True)
+    INCOME_CHOICES = (
+        ('ندارم', 'ندارم'),
+        ('کمتر از ۱۰ میلیون تومان', 'کمتر از ۱۰ میلیون تومان'),
+        ('بین ۱۰ تا ۲۰ میلیون تومان', 'بین ۱۰ تا ۲۰ میلیون تومان'),
+        ('بین ۲۰ تا ۵۰ میلیون تومان', 'بین ۲۰ تا ۵۰ میلیون تومان'),
+        ('بیشتر از ۵۰ میلیون تومان', 'بیشتر از ۵۰ میلیون تومان'),
+    )
+    income = models.CharField(max_length=100, choices=INCOME_CHOICES, null=True, blank=True, verbose_name="درآمد ماهانه")
+
+    CAR_CHOICES = (
+        ('ندارم', 'ندارم'),
+        ('داخلی', 'داخلی'),
+        ('خارجی', 'خارجی'),
+    )
+    car_status = models.CharField(max_length=100, choices=CAR_CHOICES, null=True, blank=True, verbose_name="وضعیت خودرو")
+
+    HOUSING_CHOICES = (
+        ('ندارم', 'ندارم'),
+        ('اجاره‌ای', 'اجاره‌ای'),
+        ('شخصی', 'شخصی'),
+    )
+    housing_status = models.CharField(max_length=100, choices=HOUSING_CHOICES, null=True, blank=True, verbose_name="وضعیت مسکن")
+
+    LIFESTYLE_CHOICES = (('با خانواده', 'با خانواده'), ('مستقل', 'مستقل'))
+    lifestyle = models.CharField(max_length=20, choices=LIFESTYLE_CHOICES, null=True, blank=True, verbose_name="سبک زندگی")
+
+    province = models.CharField(max_length=100, null=True, blank=True, verbose_name="استان")
+    city = models.CharField(max_length=100, null=True, blank=True, verbose_name="شهر")
 
     location_lat = models.FloatField(null=True, blank=True)
     location_lng = models.FloatField(null=True, blank=True)
-    show_location = models.BooleanField(default=False)
+    show_location = models.BooleanField(default=False, verbose_name="نمایش موقعیت مکانی")
 
-    bio = models.TextField(null=True, blank=True)
-    spouse_expectation = models.TextField(null=True, blank=True)
+    bio = models.TextField(null=True, blank=True, verbose_name="درباره من")
+    spouse_expectation = models.TextField(null=True, blank=True, verbose_name="انتظارات از همسر/دوست")
 
-    security_phrase = models.CharField(max_length=255, null=True, blank=True)
+    security_phrase = models.CharField(max_length=255, null=True, blank=True, verbose_name="عبارت امنیتی")
 
-    referral_code = models.CharField(max_length=20, unique=True, null=True, blank=True)
-    referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
+    referral_code = models.CharField(max_length=20, unique=True, null=True, blank=True, verbose_name="کد معرف")
+    referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals', verbose_name="معرف")
 
     SEEKING_CHOICES = (
-        ('Friend', 'Friend'), ('Benefit', 'Benefit'), ('Situationship', 'Situationship'),
-        ('Partner', 'Partner'), ('Roommate', 'Roommate'), ('Spouse', 'Spouse')
+        ('دوست', 'دوست'), ('دوستی با مزایا', 'دوستی با مزایا'), ('رابطه بدون تعهد', 'رابطه بدون تعهد'),
+        ('پارتنر', 'پارتنر'), ('هم‌اتاقی', 'هم‌اتاقی'), ('همسر', 'همسر')
     )
-    seeking = models.CharField(max_length=20, choices=SEEKING_CHOICES, null=True, blank=True)
-    target_gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
+    seeking = models.CharField(max_length=20, choices=SEEKING_CHOICES, null=True, blank=True, verbose_name="دنبال چه هستید؟")
+    target_gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True, verbose_name="جنسیت مورد نظر")
 
-    profile_picture = models.ImageField(upload_to=user_directory_path, null=True, blank=True)
+    profile_picture = models.ImageField(upload_to=user_directory_path, null=True, blank=True, verbose_name="عکس پروفایل")
 
-    STATUS_CHOICES = (('Active', 'Active'), ('Blocked', 'Blocked'), ('Unverified', 'Unverified'))
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Unverified')
+    STATUS_CHOICES = (('فعال', 'فعال'), ('مسدود', 'مسدود'), ('تایید نشده', 'تایید نشده'))
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='تایید نشده', verbose_name="وضعیت حساب")
 
-    is_totp_enabled = models.BooleanField(default=False)
+    is_totp_enabled = models.BooleanField(default=False, verbose_name="تایید دو مرحله‌ای فعال است؟")
 
     objects = CustomUserManager()
     USERNAME_FIELD = 'phone_number'
@@ -80,8 +109,6 @@ class CustomUser(AbstractUser):
     def save(self, *args, **kwargs):
         if not self.referral_code:
             self.referral_code = str(uuid.uuid4())[:8].upper()
-
-
 
         super().save(*args, **kwargs)
 
