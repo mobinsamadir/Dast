@@ -3,8 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dastdoosti{% endblock %}</title>
+    <title>{% block title %}دست دوستی{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#E53935', // Red theme
+                        secondary: '#2563EB', // Blue theme
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
         body {
@@ -16,25 +28,30 @@
 </head>
 <body class="text-gray-800">
     <!-- Navbar -->
-    <nav class="bg-indigo-600 text-white shadow-md">
+    <nav class="bg-white shadow-md border-b-4 border-primary">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
-                    <a href="/" class="font-bold text-xl">Dastdoosti</a>
+                    <a href="/" class="flex items-center gap-2">
+                        {% load static %}
+                        <img src="{% static 'core/images/nokia_hands_heart.svg' %}" alt="Logo" class="h-10 w-auto">
+                        <span class="font-bold text-xl text-primary">دست دوستی</span>
+                    </a>
                 </div>
                 <div class="flex">
                     {% if user.is_authenticated %}
-                        <a href="/profile/" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500">پروفایل</a>
-                        <a href="/search/" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500">جستجو</a>
-                        <a href="/wallet/" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500">کیف پول</a>
-                        <a href="/chat/" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500">پیام‌ها</a>
-                        <a href="/logout/" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 bg-red-500">خروج</a>
+                        <a href="/profile/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary transition-colors">پروفایل</a>
+                        <a href="/search/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary transition-colors">جستجو</a>
+                        <a href="/wallet/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary transition-colors">کیف پول</a>
+                        <a href="/chat/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary transition-colors">پیام‌ها</a>
+                        <a href="/games/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary transition-colors">بازی‌ها</a>
+                        <a href="/logout/" class="px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors ml-2">خروج</a>
                         <div class="relative px-3 py-2">
-                            <span id="notification-bell" class="cursor-pointer">🔔 <span id="notif-count" class="bg-red-500 text-white rounded-full px-1 text-xs hidden">0</span></span>
+                            <span id="notification-bell" class="cursor-pointer text-xl">🔔 <span id="notif-count" class="bg-red-500 text-white rounded-full px-1.5 py-0.5 text-xs absolute top-1 right-1 hidden">0</span></span>
                         </div>
                     {% else %}
-                        <a href="/login/" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500">ورود</a>
-                        <a href="/register/" class="px-3 py-2 rounded-md text-sm font-medium bg-indigo-500 hover:bg-indigo-400">ثبت‌نام</a>
+                        <a href="/login/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary transition-colors">ورود</a>
+                        <a href="/register/" class="px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:bg-red-700 transition-colors mr-2">ثبت‌نام</a>
                     {% endif %}
                 </div>
             </div>
@@ -45,7 +62,7 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {% if messages %}
             {% for message in messages %}
-                <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
+                <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 border border-blue-200" role="alert">
                     {{ message }}
                 </div>
             {% endfor %}
@@ -66,8 +83,7 @@
             const notifCount = document.getElementById('notif-count');
             notifCount.innerText = parseInt(notifCount.innerText || 0) + 1;
             notifCount.classList.remove('hidden');
-            // Show toast or something similar
-            alert("New Notification: " + data.message);
+            alert("اعلان جدید: " + data.message);
         };
     </script>
     {% endif %}

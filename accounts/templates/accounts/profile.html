@@ -1,23 +1,26 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <div class="bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto mb-8">
     <div class="flex items-center mb-6">
         {% if target_user.profile_picture %}
-            <img src="{{ target_user.profile_picture.url }}" class="w-24 h-24 rounded-full object-cover ml-6">
+            <img src="{{ target_user.profile_picture.url }}" class="w-24 h-24 rounded-full object-cover ml-6 border border-gray-200">
         {% else %}
-            <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center ml-6">بدون عکس</div>
+            <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center ml-6 border border-gray-200 overflow-hidden">
+                <img src="{% static 'core/images/nokia_hands_heart.svg' %}" alt="Default Avatar" class="w-16 h-16">
+            </div>
         {% endif %}
         <div>
             <h2 class="text-3xl font-bold">{{ target_user.display_name }}</h2>
-            <p class="text-gray-600">{{ target_user.city }} | {{ target_user.get_marital_status_display }}</p>
+            <p class="text-gray-600">{{ target_user.city|default:"ثبت نشده" }} | {{ target_user.get_marital_status_display|default:"ثبت نشده" }}</p>
         </div>
     </div>
 
     <div class="grid grid-cols-2 gap-4 mb-6">
-        <div><span class="font-bold">دنبال:</span> {{ target_user.get_seeking_display }}</div>
-        <div><span class="font-bold">جنسیت:</span> {{ target_user.get_gender_display }}</div>
-        <div><span class="font-bold">قد:</span> {{ target_user.height }} cm</div>
-        <div><span class="font-bold">درآمد:</span> {{ target_user.income }}</div>
+        <div><span class="font-bold">دنبال:</span> {{ target_user.get_seeking_display|default:"نامشخص" }}</div>
+        <div><span class="font-bold">جنسیت:</span> {{ target_user.get_gender_display|default:"نامشخص" }}</div>
+        <div><span class="font-bold">قد:</span> {% if target_user.height %}{{ target_user.height }} cm{% else %}نامشخص{% endif %}</div>
+        <div><span class="font-bold">درآمد:</span> {{ target_user.get_income_display|default:"نامشخص" }}</div>
     </div>
 
     <div class="mb-6">
@@ -26,8 +29,8 @@
     </div>
 
     <div class="flex gap-4">
-        <a href="/chat/{{ target_user.id }}/" class="bg-indigo-600 text-white px-6 py-2 rounded shadow hover:bg-indigo-500">ارسال پیام</a>
-        <a href="/calls/{{ target_user.id }}/" class="bg-green-600 text-white px-6 py-2 rounded shadow hover:bg-green-500">تماس تصویری</a>
+        <a href="/chat/{{ target_user.id }}/" class="bg-indigo-600 text-white px-6 py-2 rounded shadow hover:bg-indigo-500 transition-colors">ارسال پیام</a>
+        <a href="/calls/{{ target_user.id }}/" class="bg-green-600 text-white px-6 py-2 rounded shadow hover:bg-green-500 transition-colors">تماس تصویری</a>
     </div>
 </div>
 
@@ -36,9 +39,16 @@
     <h3 class="font-bold text-xl mb-4">کاربران مشابه</h3>
     <div class="grid grid-cols-4 gap-4">
         {% for u in similar_users %}
-            <a href="/profile/{{ u.id }}/" class="bg-white rounded p-2 shadow text-center block hover:shadow-lg">
-                <div class="font-bold">{{ u.display_name }}</div>
-                <div class="text-sm text-gray-500">{{ u.city }}</div>
+            <a href="/profile/{{ u.id }}/" class="bg-white rounded-lg p-4 shadow text-center block hover:shadow-lg transition-shadow">
+                {% if u.profile_picture %}
+                    <img src="{{ u.profile_picture.url }}" class="w-16 h-16 rounded-full object-cover mx-auto mb-2 border border-gray-200">
+                {% else %}
+                    <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2 border border-gray-200 overflow-hidden">
+                        <img src="{% static 'core/images/nokia_hands_heart.svg' %}" alt="Default Avatar" class="w-10 h-10">
+                    </div>
+                {% endif %}
+                <div class="font-bold text-sm">{{ u.display_name }}</div>
+                <div class="text-xs text-gray-500">{{ u.city|default:"نامشخص" }}</div>
             </a>
         {% endfor %}
     </div>

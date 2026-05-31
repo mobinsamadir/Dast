@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="100%" height="100%">
+  <!-- Left Hand (Blue) -->
+  <path d="M20,80 Q40,40 80,50 Q60,70 40,90 Z" fill="#2563EB" />
+  <path d="M40,45 Q55,30 85,45 Q70,60 50,75 Z" fill="#1D4ED8" />
+  <!-- Right Hand (Blue) -->
+  <path d="M180,80 Q160,40 120,50 Q140,70 160,90 Z" fill="#2563EB" />
+  <path d="M160,45 Q145,30 115,45 Q130,60 150,75 Z" fill="#1D4ED8" />
+
+  <!-- Center Heart (Red) -->
+  <path d="M100,65 C100,65 80,45 80,30 C80,15 100,20 100,35 C100,20 120,15 120,30 C120,45 100,65 100,65 Z" fill="#DC2626" />
+</svg>

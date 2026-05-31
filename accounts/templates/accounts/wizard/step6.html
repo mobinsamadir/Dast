@@ -1,1 +1,115 @@
 {% extends 'accounts/wizard/layout.html' %}
+
+{% block extra_wizard_scripts %}
+<script>
+    const iranData = {
+        "آذربایجان شرقی": ["تبریز", "مراغه", "مرند", "میانه", "اهر", "بناب"],
+        "آذربایجان غربی": ["ارومیه", "خوی", "بوکان", "مهاباد", "میاندوآب", "سلماس"],
+        "اردبیل": ["اردبیل", "پارس‌آباد", "مشگین‌شهر", "خلخال", "گرمی"],
+        "اصفهان": ["اصفهان", "کاشان", "خمینی‌شهر", "نجف‌آباد", "شاهین‌شهر", "فولادشهر"],
+        "البرز": ["کرج", "هشتگرد", "نظرآباد", "محمدشهر", "کمال‌شهر"],
+        "ایلام": ["ایلام", "ایوان", "دهلران", "آبدانان", "مهران"],
+        "بوشهر": ["بوشهر", "برازجان", "گناوه", "کنگان", "خورموج"],
+        "تهران": ["تهران", "اسلام‌شهر", "شهریار", "قدس", "ملارد", "صالحیه", "پاکدشت"],
+        "چهارمحال و بختیاری": ["شهرکرد", "بروجن", "فرخ‌شهر", "فارسان", "لردگان"],
+        "خراسان جنوبی": ["بیرجند", "قائن", "فردوس", "نهبندان", "طبس"],
+        "خراسان رضوی": ["مشهد", "نیشابور", "سبزوار", "تربت حیدریه", "کاشمر", "قوچان"],
+        "خراسان شمالی": ["بجنورد", "شیروان", "اسفراین", "آشخانه", "جاجرم"],
+        "خوزستان": ["اهواز", "دزفول", "آبادان", "خرمشهر", "اندیمشک", "ماهشهر", "شوشتر"],
+        "زنجان": ["زنجان", "ابهر", "خرمدره", "قیدار", "هیدج"],
+        "سمنان": ["سمنان", "شاهرود", "دامغان", "گرمسار", "مهدی‌شهر"],
+        "سیستان و بلوچستان": ["زاهدان", "زابل", "ایرانشهر", "چابهار", "سراوان", "خاش"],
+        "فارس": ["شیراز", "مرودشت", "جهرم", "فسا", "کازرون", "داراب"],
+        "قزوین": ["قزوین", "الوند", "تاکستان", "آبیک", "اقبالیه"],
+        "قم": ["قم", "قنوات", "جعفریه", "کهک", "دستجرد"],
+        "کردستان": ["سنندج", "سقز", "مریوان", "بانه", "قروه", "کامیاران"],
+        "کرمان": ["کرمان", "سیرجان", "رفسنجان", "جیرفت", "بم", "زرند"],
+        "کرمانشاه": ["کرمانشاه", "اسلام‌آباد غرب", "کنگاور", "جوانرود", "سنقر"],
+        "کهگیلویه و بویراحمد": ["یاسوج", "دوگنبدان", "دهدشت", "لیکک", "چرام"],
+        "گلستان": ["گرگان", "گنبد کاووس", "علی‌آباد کتول", "بندر ترکمن", "آزادشهر"],
+        "گیلان": ["رشت", "بندر انزلی", "لاهیجان", "لنگرود", "هشتپر", "آستارا"],
+        "لرستان": ["خرم‌آباد", "بروجرد", "دورود", "کوهدشت", "الیگودرز"],
+        "مازندران": ["ساری", "بابل", "آمل", "قائم‌شهر", "بهشهر", "نوشهر"],
+        "مرکزی": ["اراک", "ساوه", "خمین", "محلات", "دلیجان"],
+        "هرمزگان": ["بندرعباس", "میناب", "دهبارز", "بندر لنگه", "قشم"],
+        "همدان": ["همدان", "ملایر", "نهاوند", "تویسرکان", "اسدآباد"],
+        "یزد": ["یزد", "میبد", "اردکان", "بافق", "مهریز"]
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const provinceInput = document.querySelector("input[name$='-province']");
+        const cityInput = document.querySelector("input[name$='-city']");
+
+        if (provinceInput && cityInput) {
+            // Create wrappers
+            const provinceWrapper = document.createElement("div");
+            provinceWrapper.className = "relative";
+            provinceInput.parentNode.insertBefore(provinceWrapper, provinceInput);
+
+            const cityWrapper = document.createElement("div");
+            cityWrapper.className = "relative";
+            cityInput.parentNode.insertBefore(cityWrapper, cityInput);
+
+            // Create Selects
+            const provinceSelect = document.createElement("select");
+            provinceSelect.className = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border";
+            provinceWrapper.appendChild(provinceSelect);
+            provinceInput.type = "hidden";
+            provinceWrapper.appendChild(provinceInput);
+
+            const citySelect = document.createElement("select");
+            citySelect.className = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border";
+            cityWrapper.appendChild(citySelect);
+            cityInput.type = "hidden";
+            cityWrapper.appendChild(cityInput);
+
+            // Populate provinces
+            const currentProvince = provinceInput.value;
+            const currentCity = cityInput.value;
+
+            provinceSelect.innerHTML = '<option value="">انتخاب استان</option>';
+            for (let province in iranData) {
+                let option = document.createElement("option");
+                option.value = province;
+                option.text = province;
+                if (province === currentProvince) {
+                    option.selected = true;
+                }
+                provinceSelect.appendChild(option);
+            }
+
+            // Function to update cities
+            function updateCities(selectedProvince, preSelectCity = null) {
+                citySelect.innerHTML = '<option value="">انتخاب شهر</option>';
+                if (selectedProvince && iranData[selectedProvince]) {
+                    iranData[selectedProvince].forEach(function(city) {
+                        let option = document.createElement("option");
+                        option.value = city;
+                        option.text = city;
+                        if (city === preSelectCity) {
+                            option.selected = true;
+                        }
+                        citySelect.appendChild(option);
+                    });
+                }
+            }
+
+            // Initial city populate if province is already selected
+            if (currentProvince) {
+                updateCities(currentProvince, currentCity);
+            }
+
+            // Event listeners
+            provinceSelect.addEventListener('change', function() {
+                updateCities(this.value);
+                provinceInput.value = this.value;
+                cityInput.value = "";
+            });
+
+            citySelect.addEventListener('change', function() {
+                cityInput.value = this.value;
+            });
+        }
+    });
+</script>
+{% endblock %}
