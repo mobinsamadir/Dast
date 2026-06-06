@@ -101,6 +101,8 @@ class CustomUser(AbstractUser):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='تایید نشده', verbose_name="وضعیت حساب")
 
     is_totp_enabled = models.BooleanField(default=False, verbose_name="تایید دو مرحله‌ای فعال است؟")
+    is_bot_verified = models.BooleanField(default=False, verbose_name="تایید شده توسط ربات")
+    bot_verification_token = models.CharField(max_length=64, null=True, blank=True)
 
     objects = CustomUserManager()
     USERNAME_FIELD = 'phone_number'

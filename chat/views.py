@@ -7,7 +7,6 @@ from django.contrib import messages
 from accounts.models import CustomUser
 
 @login_required
-@subscription_required
 def chat_list_view(request):
     # Rooms where user is a member or admin
     rooms = request.user.chat_rooms.all() | request.user.administered_rooms.all()
@@ -15,7 +14,6 @@ def chat_list_view(request):
     return render(request, 'chat/chat_list.html', {'rooms': rooms})
 
 @login_required
-@subscription_required
 def chat_room_view(request, room_id):
     room = get_object_or_404(ChatRoom, id=room_id)
     if room.room_type in ['GROUP', 'CHANNEL'] and request.user not in room.members.all() and room.admin != request.user:
@@ -106,3 +104,40 @@ def channel_settings_view(request, room_id):
             room.members.remove(user)
             messages.success(request, 'کاربر حذف شد.')
     return render(request, 'chat/room_settings.html', {'room': room})
+
+@login_required
+def start_chat_view(request, user_id):
+    target_user = get_object_or_404(CustomUser, id=user_id)
+    if target_user == request.user:
+        messages.error(request, 'شما نمیتوانید با خودتان چت کنید.')
+        return redirect('profile_detail', user_id=target_user.id)
+
+    # Check if a private room already exists between these two
+    existing_rooms = ChatRoom.objects.filter(room_type='PRIVATE', members=request.user).filter(members=target_user)
+    if existing_rooms.exists():
+        return redirect('chat_room', room_id=existing_rooms.first().id)
+
+    # Create new private room
+    room = ChatRoom.objects.create(room_type='PRIVATE')
+    room.members.add(request.user, target_user)
+    return redirect('chat_room', room_id=room.id)
+
+from .models import UserReport
+
+@login_required
+def report_user_view(request, user_id):
+    target_user = get_object_or_404(CustomUser, id=user_id)
+    if target_user == request.user:
+        messages.error(request, 'شما نمیتوانید خودتان را گزارش دهید.')
+        return redirect('profile_detail', user_id=target_user.id)
+
+    if request.method == 'POST':
+        reason = request.POST.get('reason')
+        if reason:
+            UserReport.objects.create(reporter=request.user, reported_user=target_user, reason=reason)
+            messages.success(request, 'گزارش شما با موفقیت ثبت شد و توسط مدیریت بررسی خواهد شد.')
+            return redirect('profile_detail', user_id=target_user.id)
+        else:
+            messages.error(request, 'لطفا دلیل گزارش را وارد کنید.')
+
+    return render(request, 'chat/report_user.html', {'target_user': target_user})

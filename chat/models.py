@@ -58,3 +58,13 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.sender}: {self.text[:20] if self.text else 'Media'}"
+
+class UserReport(models.Model):
+    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reports_made')
+    reported_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reports_received')
+    reason = models.TextField(verbose_name='دلیل گزارش')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_resolved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Report by {self.reporter} against {self.reported_user}"

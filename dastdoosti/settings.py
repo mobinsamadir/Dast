@@ -78,6 +78,8 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "core.middleware.DeviceBanMiddleware",
+    "core.middleware_bot.BotVerificationMiddleware",
 ]
 
 ROOT_URLCONF = "dastdoosti.urls"
