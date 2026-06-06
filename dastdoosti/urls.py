@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from admin_panel.views import health_check
-from backup.views import download_backup
+from backup.views import download_backup, upload_restore_backup
 from core.views import landing_page
 from django.conf import settings
 from django.conf.urls.static import static
@@ -17,6 +17,7 @@ admin.site.name = 'otpadmin'
 urlpatterns = [
     path('', landing_page, name='landing'),
     path('admin/backup/download/', download_backup, name='download_backup'),
+    path('admin/backup/restore/', upload_restore_backup, name='restore_backup'),
     path('admin/', admin.site.urls),
     path('health/', health_check, name='health_check'),
     path('api/v1/', include('core.api.urls')),

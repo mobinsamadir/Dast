@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Restore Backup</h1>
+    <p>Upload a backup zip file to restore the database and media files.</p>
+    <p style="color: red;"><strong>Warning:</strong> Restoring a backup will overwrite existing data. Make sure to download a backup of the current state before proceeding.</p>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="margin: 20px 0;">
+            <label for="backup_file">Select Backup Zip File:</label>
+            <input type="file" name="backup_file" id="backup_file" accept=".zip" required>
+        </div>
+        <div class="submit-row">
+            <input type="submit" value="Restore Backup" class="default" name="_save">
+        </div>
+    </form>
+</div>
+{% endblock %}

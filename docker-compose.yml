@@ -1,35 +1,44 @@
 version: '3.8'
-
 services:
   web:
     build: .
-    command: >
-      bash -c "python manage.py migrate &&
-               python manage.py seed_db &&
-               daphne -b 0.0.0.0 -p 8000 dastdoosti.asgi:application"
+    command: "bash -c \"python manage.py migrate &&\n         python manage.py seed_db\
+      \ &&\n         daphne -b 0.0.0.0 -p 8000 dastdoosti.asgi:application\"\n"
     volumes:
-      - .:/app
+    - .:/app
     ports:
-      - "8000:8000"
+    - 8000:8000
     env_file:
-      - .env.example
+    - .env.example
     depends_on:
-      - redis
+    - redis
+    - db
     restart: always
-
   redis:
-    image: "redis:alpine"
+    image: redis:alpine
     ports:
-      - "6379:6379"
-
+    - 6379:6379
   celery_worker:
     build: .
     command: celery -A dastdoosti worker -l INFO
     volumes:
-      - .:/app
+    - .:/app
     env_file:
-      - .env.example
+    - .env.example
     depends_on:
-      - redis
-      - web
+    - redis
+    - web
+    - db
     restart: always
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: dastdoosti
+      POSTGRES_USER: dastdoosti_user
+      POSTGRES_PASSWORD: dastdoosti_password
+    ports:
+    - 5432:5432
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data: null
