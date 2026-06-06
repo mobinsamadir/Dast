@@ -1,21 +1,27 @@
-# Dastdoosti - Network & Dating App
+# 🌟 Dastdoosti - Network & Dating App
 
-A comprehensive social networking and dating platform built with Django.
+A comprehensive social networking and dating platform built with **Django**.
 
-## Features
-- Full User Profiles (Health, Location, Style, etc.)
-- Subscriptions & Coin Wallet
-- Gift Packets (with admin commission)
-- Real-time Chat & WebRTC Video Calls
-- Real-time Notifications & Web Push
-- Games (Truth & Dare, Hokm, etc.)
-- Lottery System
-- Superuser Server Health Dashboard & ZIP Backup
-- Custom Admin Panel using Jazzmin
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/mobinsamadir/Dast)
 
-## Running Locally
+---
 
-### 1. Simple Local Setup (No Docker)
+## ✨ Features
+- 👤 **Full User Profiles** (Health, Location, Style, etc.)
+- 💎 **Subscriptions & Coin Wallet**
+- 🎁 **Gift Packets** (with admin commission)
+- 💬 **Real-time Chat & WebRTC Video Calls**
+- 🔔 **Real-time Notifications & Web Push**
+- 🎮 **Games** (Truth & Dare, Hokm, etc.)
+- 🎲 **Lottery System**
+- 🛠️ **Superuser Server Health Dashboard & ZIP Backup**
+- ⚙️ **Custom Admin Panel** using Jazzmin
+
+---
+
+## 🚀 Running Locally
+
+### 1️⃣ Simple Local Setup (No Docker)
 You can run this project locally using Python's built-in tools. This uses SQLite and runs everything synchronously (no Redis required for preview).
 
 ```bash
@@ -35,10 +41,10 @@ python manage.py runserver
 ```
 
 You can now open your browser to `http://localhost:8000`.
-- **Admin**: Phone: `09000000000`, Password: `admin`
-- **Test User**: Phone: `09111111111`, Password: `testuser`
+- 👑 **Admin**: Phone: `09000000000`, Password: `admin`
+- 🧪 **Test User**: Phone: `09111111111`, Password: `testuser`
 
-### 2. Full Local Development (Docker Compose)
+### 2️⃣ Full Local Development (Docker Compose)
 If you have Docker installed, you can spin up the entire application (including Redis and Celery workers) with one command:
 
 ```bash
@@ -46,9 +52,7 @@ docker compose up --build
 ```
 The site will be available at `http://localhost:8000`. The database is automatically seeded.
 
-### 3. GitHub Codespaces
-You can run this project instantly in a fully configured web environment using GitHub Codespaces. No local setup is required!
+### 3️⃣ GitHub Codespaces
+You can run this project instantly in a fully configured web environment using **GitHub Codespaces**. No local setup is required!
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/mobinsamadir/Dast)
-
-Once the Codespace is ready, the development server will start automatically with a seeded database.
+Just click the badge at the top of this page! Once the Codespace is ready, the development server will start automatically with a seeded database, and the website will automatically open in a new browser tab.
