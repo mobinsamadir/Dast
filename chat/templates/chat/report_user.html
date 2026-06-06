@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-8 mt-10">
+    <h2 class="text-2xl font-bold mb-6 text-center text-red-600">گزارش تخلف کاربر</h2>
+    <div class="mb-4">
+        <p class="text-gray-700">شما در حال گزارش کاربر <strong>{{ target_user.display_name }}</strong> هستید.</p>
+        <p class="text-sm text-gray-500 mt-2">لطفاً دلیل گزارش خود را به صورت کامل توضیح دهید. گزارش‌های جعلی ممکن است منجر به مسدود شدن حساب خود شما شود.</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-6">
+            <label class="block text-gray-700 font-bold mb-2">دلیل گزارش</label>
+            <textarea name="reason" rows="4" required class="w-full border p-2 rounded focus:ring-1 focus:ring-red-500" placeholder="توضیح دهید..."></textarea>
+        </div>
+
+        <div class="flex gap-4">
+            <button type="submit" class="w-full bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-500">ثبت گزارش</button>
+            <a href="{% url 'profile_detail' target_user.id %}" class="w-full bg-gray-200 text-gray-700 text-center font-bold py-2 px-4 rounded hover:bg-gray-300">انصراف</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

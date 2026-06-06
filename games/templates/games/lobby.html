@@ -17,7 +17,11 @@
                 <p class="text-gray-600 mb-4 h-12">بازی کلاسیک و جذاب برای آشنایی بیشتر.</p>
                 <div class="flex justify-between items-center">
                     <span class="text-sm font-bold text-yellow-600">ورودی: ۱۰ سکه</span>
-                    <a href="{% url 'truth_dare_lobby' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ورود به بازی</a>
+                    {% if has_premium %}
+                        <a href="{% url 'truth_dare_lobby' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ورود به بازی</a>
+                    {% else %}
+                        <a href="{% url 'plans' %}" class="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors" title="نیازمند اشتراک ویژه">🔒 ویژه</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -32,7 +36,11 @@
                 <p class="text-gray-600 mb-4 h-12">محبوب‌ترین بازی کارتی ایرانی.</p>
                 <div class="flex justify-between items-center">
                     <span class="text-sm font-bold text-yellow-600">ورودی: ۵۰ سکه</span>
-                    <a href="{% url 'hokm_lobby' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ورود به بازی</a>
+                    {% if has_premium %}
+                        <a href="{% url 'hokm_lobby' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ورود به بازی</a>
+                    {% else %}
+                        <a href="{% url 'plans' %}" class="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors" title="نیازمند اشتراک ویژه">🔒 ویژه</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -47,7 +55,11 @@
                 <p class="text-gray-600 mb-4 h-12">خاطره‌انگیز و پر هیجان، تا ۴ نفر.</p>
                 <div class="flex justify-between items-center">
                     <span class="text-sm font-bold text-yellow-600">ورودی: ۲۰ سکه</span>
-                    <a href="{% url 'manche_lobby' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ورود به بازی</a>
+                    {% if has_premium %}
+                        <a href="{% url 'manche_lobby' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ورود به بازی</a>
+                    {% else %}
+                        <a href="{% url 'plans' %}" class="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors" title="نیازمند اشتراک ویژه">🔒 ویژه</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -62,7 +74,11 @@
                 <p class="text-gray-600 mb-4 h-12">کلاسیک، ساده و مبتنی بر شانس.</p>
                 <div class="flex justify-between items-center">
                     <span class="text-sm font-bold text-yellow-600">ورودی: ۱۵ سکه</span>
-                    <a href="{% url 'snakes_lobby' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ورود به بازی</a>
+                    {% if has_premium %}
+                        <a href="{% url 'snakes_lobby' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ورود به بازی</a>
+                    {% else %}
+                        <a href="{% url 'plans' %}" class="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors" title="نیازمند اشتراک ویژه">🔒 ویژه</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -77,7 +93,11 @@
                 <p class="text-gray-600 mb-4 h-12">رقابت هوش و سرعت کلمه‌سازی.</p>
                 <div class="flex justify-between items-center">
                     <span class="text-sm font-bold text-yellow-600">ورودی: ۳۰ سکه</span>
-                    <a href="{% url 'amirza_lobby' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ورود به بازی</a>
+                    {% if has_premium %}
+                        <a href="{% url 'amirza_lobby' %}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ورود به بازی</a>
+                    {% else %}
+                        <a href="{% url 'plans' %}" class="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors" title="نیازمند اشتراک ویژه">🔒 ویژه</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

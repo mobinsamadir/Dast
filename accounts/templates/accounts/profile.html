@@ -11,7 +11,14 @@
             </div>
         {% endif %}
         <div>
-            <h2 class="text-3xl font-bold">{{ target_user.display_name }}</h2>
+            <h2 class="text-3xl font-bold flex items-center gap-2">
+                {{ target_user.display_name }}
+                {% if target_user.is_bot_verified %}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="تایید شده">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                {% endif %}
+            </h2>
             <p class="text-gray-600">{{ target_user.city|default:"ثبت نشده" }} | {{ target_user.get_marital_status_display|default:"ثبت نشده" }}</p>
         </div>
     </div>
@@ -29,7 +36,8 @@
     </div>
 
     <div class="flex gap-4">
-        <a href="/chat/{{ target_user.id }}/" class="bg-indigo-600 text-white px-6 py-2 rounded shadow hover:bg-indigo-500 transition-colors">ارسال پیام</a>
+        <a href="{% url 'start_chat' target_user.id %}" class="bg-indigo-600 text-white px-6 py-2 rounded shadow hover:bg-indigo-500 transition-colors">ارسال پیام</a>
+        <a href="{% url 'report_user' target_user.id %}" class="bg-red-600 text-white px-6 py-2 rounded shadow hover:bg-red-500 transition-colors">گزارش تخلف</a>
         <a href="/calls/{{ target_user.id }}/" class="bg-green-600 text-white px-6 py-2 rounded shadow hover:bg-green-500 transition-colors">تماس تصویری</a>
     </div>
 </div>

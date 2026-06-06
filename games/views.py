@@ -6,9 +6,9 @@ from django.contrib import messages
 from subscriptions.utils import deduct_coins
 
 @login_required
-@subscription_required
 def games_lobby_view(request):
-    return render(request, 'games/lobby.html')
+    has_premium = request.user.subscriptions.filter(is_active=True).exists()
+    return render(request, 'games/lobby.html', {'has_premium': has_premium})
 
 def create_or_join_room(request, game_type, template_lobby, view_room_name, entry_fee=10):
     if request.method == 'POST':

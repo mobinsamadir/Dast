@@ -59,7 +59,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
                 text = data.get('text', '')
                 reply_to_id = data.get('reply_to', None)
-                message = await self.save_message(text, reply_to_id=reply_to_id)
+                try:
+                    message = await self.save_message(text, reply_to_id=reply_to_id)
+                except Exception as e:
+                    await self.send(text_data=json.dumps({'error': str(e)}))
+                    return
 
                 await self.channel_layer.group_send(
                     self.room_group_name,
@@ -102,14 +106,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def check_room_access(self):
         try:
-            # Check subscription
-            if not self.scope['user'].subscriptions.filter(is_active=True).exists():
-                return False
-
             room = ChatRoom.objects.get(id=self.room_id)
             if room.room_type in ['GROUP', 'CHANNEL']:
                 return room.members.filter(id=self.scope['user'].id).exists()
-            return True # Private rooms check can be more complex, but simplified here
+
+            # For PRIVATE rooms, ensure user is a member
+            if room.room_type == 'PRIVATE':
+                return room.members.filter(id=self.scope['user'].id).exists()
+
+            return True
         except ChatRoom.DoesNotExist:
             return False
 
@@ -124,6 +129,37 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, text, reply_to_id=None):
+        from core.models import SiteSettings
+        room = ChatRoom.objects.get(id=self.room_id)
+
+        # Subscription check for sending messages
+        user_is_premium = self.scope['user'].subscriptions.filter(is_active=True).exists()
+
+        if room.room_type == 'PRIVATE':
+            # Identify the other person in the room
+            other_user = room.members.exclude(id=self.scope['user'].id).first()
+            other_user_is_premium = other_user.subscriptions.filter(is_active=True).exists() if other_user else False
+
+            # Check if this is the FIRST message in the room
+            is_first_message = not room.messages.exists()
+
+            if is_first_message and not user_is_premium:
+                raise Exception("برای شروع چت باید حساب ویژه داشته باشید.")
+
+            settings = SiteSettings.load()
+
+            if not is_first_message and not user_is_premium:
+                if settings.chat_reply_rule == 'premium_only':
+                    raise Exception("برای ارسال پیام در این چت، باید حساب ویژه داشته باشید.")
+                elif settings.chat_reply_rule == 'sender_premium' and not other_user_is_premium:
+                    # If neither are premium
+                    raise Exception("برای چت کردن باید حداقل یکی از طرفین حساب ویژه داشته باشد.")
+        else:
+            # Group/Channel
+            if not user_is_premium:
+                raise Exception("برای ارسال پیام در گروه یا کانال باید حساب ویژه داشته باشید.")
+
+
         room = ChatRoom.objects.get(id=self.room_id)
         reply_msg = None
         if reply_to_id:

@@ -19,3 +19,27 @@ class MessageAdmin(admin.ModelAdmin):
 
 admin.site.register(ChatRoom, ChatRoomAdmin)
 admin.site.register(Message, MessageAdmin)
+
+from .models import UserReport
+
+def suspend_reported_user(modeladmin, request, queryset):
+    for report in queryset:
+        user = report.reported_user
+        user.status = 'Blocked'
+        user.save()
+        report.is_resolved = True
+        report.save()
+
+suspend_reported_user.short_description = "مسدود کردن کامل کاربران گزارش شده"
+
+class UserReportAdmin(admin.ModelAdmin):
+    actions = [suspend_reported_user]
+    list_display = ('id', 'reporter', 'reported_user', 'short_reason', 'created_at', 'is_resolved')
+    list_filter = ('is_resolved', 'created_at')
+    search_fields = ('reporter__phone_number', 'reported_user__phone_number', 'reason')
+
+    def short_reason(self, obj):
+        return obj.reason[:50]
+    short_reason.short_description = "Reason"
+
+admin.site.register(UserReport, UserReportAdmin)

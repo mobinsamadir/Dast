@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import views_bot
 from .views import RegistrationWizard, FORMS
 
 urlpatterns = [
@@ -11,5 +12,7 @@ urlpatterns = [
     path('profile/', views.my_profile, name='my_profile'),
     path('profile/<int:user_id>/', views.profile_detail, name='profile_detail'),
     path('search/', views.search_users, name='search_users'),
+    path('verify-bot/', views_bot.bot_verification_view, name='bot_verification'),
+    path('api/webhook/bot/', views_bot.bot_webhook, name='bot_webhook'),
     path('nearby/', views.nearby_users, name='nearby_users'),
 ]
