@@ -107,6 +107,7 @@ class CustomUser(AbstractUser):
 
     STATUS_CHOICES = (('فعال', 'فعال'), ('مسدود', 'مسدود'), ('تایید نشده', 'تایید نشده'))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='تایید نشده', verbose_name="وضعیت حساب")
+    last_spin_date = models.DateTimeField(null=True, blank=True, verbose_name="آخرین چرخش گردونه")
 
     is_totp_enabled = models.BooleanField(default=False, verbose_name="تایید دو مرحله‌ای فعال است؟")
     is_bot_verified = models.BooleanField(default=False, verbose_name="تایید شده توسط ربات")

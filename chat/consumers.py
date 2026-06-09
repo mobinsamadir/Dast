@@ -26,11 +26,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
+        await self.channel_layer.group_add(
+            'global_broadcast',
+            self.channel_name
+        )
         await self.accept()
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
             self.room_group_name,
+            self.channel_name
+        )
+        await self.channel_layer.group_discard(
+            'global_broadcast',
             self.channel_name
         )
 
@@ -72,9 +80,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         return
 
                 text = data.get('text', '')
+                is_private_media = data.get('is_private_media', False)
+                media_url = data.get('media_url', None)
                 reply_to_id = data.get('reply_to', None)
                 try:
-                    message = await self.save_message(text, reply_to_id=reply_to_id)
+                    message = await self.save_message(text, reply_to_id=reply_to_id, is_private_media=is_private_media)
                 except Exception as e:
                     await self.send(text_data=json.dumps({'error': str(e)}))
                     return
@@ -85,8 +95,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'type': 'chat_message',
                         'message': message.text,
                         'sender': self.scope['user'].phone_number,
+                        'sender_id': self.scope['user'].id,
                         'message_id': str(message.id),
-                        'reply_to_id': reply_to_id
+                        'reply_to_id': reply_to_id,
+                        'is_private_media': message.is_private_media,
+                        'media_url': media_url
                     }
                 )
             elif action == 'read_receipt':
@@ -106,6 +119,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # If receiver is not VIP and this is the first message interaction, mask the payload.
         message_content = event['message']
         room_type = await self.get_room_type()
+        is_private_media = event.get('is_private_media', False)
+        media_url = event.get('media_url')
 
         if room_type == 'PRIVATE' and self.scope['user'].phone_number != event['sender']:
             is_vip = await self.is_user_vip(self.scope['user'])
@@ -115,13 +130,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 # Blur logic: if it's the very first message they receive from someone
                 if msg_count <= 1:
                     message_content = "🔒 [VIP REQUIRED] برای مشاهده این پیام اشتراک ویژه تهیه کنید."
+                    media_url = None
+
+            # Feature 2: Sunk-Cost Intimacy Progression
+            if is_private_media:
+                intimacy_level, current_points = await self.get_intimacy_level(event['sender_id'])
+                if intimacy_level < 3:
+                    media_url = None
+                    message_content = f"🔒 [INTIMACY LEVEL 3 REQUIRED] سطح صمیمیت شما برای مشاهده این محتوای خصوصی کافی نیست. (سطح فعلی: {intimacy_level})"
 
         await self.send(text_data=json.dumps({
             'action': 'new_message',
             'message': message_content,
+            'media_url': media_url,
             'sender': event['sender'],
             'message_id': event['message_id'],
             'reply_to_id': event.get('reply_to_id')
+        }))
+
+    async def broadcast_message(self, event):
+        await self.send(text_data=json.dumps({
+            'action': 'global_broadcast',
+            'message': event['message']
         }))
 
     async def chat_read_receipt(self, event):
@@ -156,7 +186,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def is_user_vip(self, user):
+        from django.core.cache import cache
+        # Check temporary VIP from Redis
+        if cache.get(f'temp_vip_{user.id}'):
+            return True
         return user.subscriptions.filter(is_active=True).exists()
+
+    @database_sync_to_async
+    def get_intimacy_level(self, sender_id):
+        from chat.models import Intimacy
+        u1, u2 = (self.scope['user'].id, sender_id) if self.scope['user'].id < sender_id else (sender_id, self.scope['user'].id)
+        try:
+            intimacy = Intimacy.objects.get(user_one_id=u1, user_two_id=u2)
+            pts = intimacy.points
+        except Intimacy.DoesNotExist:
+            pts = 0
+
+        if pts >= 1000:
+            return 4, pts
+        elif pts >= 500:
+            return 3, pts
+        elif pts >= 300:
+            return 2, pts
+        elif pts >= 100:
+            return 1, pts
+        return 0, pts
 
     @database_sync_to_async
     def is_room_admin(self):
@@ -164,7 +218,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return room.admin == self.scope['user']
 
     @database_sync_to_async
-    def save_message(self, text, reply_to_id=None):
+    def save_message(self, text, reply_to_id=None, is_private_media=False):
         from core.models import SiteSettings
         room = ChatRoom.objects.get(id=self.room_id)
 
@@ -200,7 +254,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             except Message.DoesNotExist:
                 pass
 
-        msg = Message.objects.create(room=room, sender=self.scope['user'], text=text, reply_to=reply_msg)
+        msg = Message.objects.create(room=room, sender=self.scope['user'], text=text, reply_to=reply_msg, is_private_media=is_private_media)
         return msg
 
     @database_sync_to_async
