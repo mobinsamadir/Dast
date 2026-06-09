@@ -1,6 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from django.core.cache import cache
 from .models import ChatRoom, Message
 from django.contrib.auth import get_user_model
 from admin_panel.models import FeatureFlag
@@ -36,6 +37,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data=None, bytes_data=None):
         if not self.scope['user'].is_authenticated:
             return
+
+        # Distributed Rate Limiting (Redis-backed via Django Cache)
+        # Limit: 3 actions per second per user globally
+        user_id = self.scope['user'].id
+        cache_key = f"ws_ratelimit_{user_id}"
+
+        # We use a simple counter with a 1-second expiration
+        current_count = cache.get(cache_key, 0)
+        if current_count >= 3:
+            await self.send(text_data=json.dumps({'error': 'Rate limit exceeded. Slow down.'}))
+            return
+
+        cache.set(cache_key, current_count + 1, timeout=1)
 
         if text_data:
             data = json.loads(text_data)
@@ -88,9 +102,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
 
     async def chat_message(self, event):
+        # Dark Pattern: The "First Message Blur"
+        # If receiver is not VIP and this is the first message interaction, mask the payload.
+        message_content = event['message']
+        room_type = await self.get_room_type()
+
+        if room_type == 'PRIVATE' and self.scope['user'].phone_number != event['sender']:
+            is_vip = await self.is_user_vip(self.scope['user'])
+            if not is_vip:
+                # Check if they have chatted before (more than 1 message means not the first interaction)
+                msg_count = await self.get_room_message_count()
+                # Blur logic: if it's the very first message they receive from someone
+                if msg_count <= 1:
+                    message_content = "🔒 [VIP REQUIRED] برای مشاهده این پیام اشتراک ویژه تهیه کنید."
+
         await self.send(text_data=json.dumps({
             'action': 'new_message',
-            'message': event['message'],
+            'message': message_content,
             'sender': event['sender'],
             'message_id': event['message_id'],
             'reply_to_id': event.get('reply_to_id')
@@ -123,6 +151,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return ChatRoom.objects.get(id=self.room_id).room_type
 
     @database_sync_to_async
+    def get_room_message_count(self):
+        return ChatRoom.objects.get(id=self.room_id).messages.count()
+
+    @database_sync_to_async
+    def is_user_vip(self, user):
+        return user.subscriptions.filter(is_active=True).exists()
+
+    @database_sync_to_async
     def is_room_admin(self):
         room = ChatRoom.objects.get(id=self.room_id)
         return room.admin == self.scope['user']
@@ -132,23 +168,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from core.models import SiteSettings
         room = ChatRoom.objects.get(id=self.room_id)
 
-        # Subscription check for sending messages
+        # Allow the first message to be sent for free, but restrict replies if not premium based on settings.
+        # The blurring is handled on the receiving end (chat_message).
         user_is_premium = self.scope['user'].subscriptions.filter(is_active=True).exists()
 
         if room.room_type == 'PRIVATE':
-            # Identify the other person in the room
-            other_user = room.members.exclude(id=self.scope['user'].id).first()
-            other_user_is_premium = other_user.subscriptions.filter(is_active=True).exists() if other_user else False
-
             # Check if this is the FIRST message in the room
             is_first_message = not room.messages.exists()
-
-            if is_first_message and not user_is_premium:
-                raise Exception("برای شروع چت باید حساب ویژه داشته باشید.")
 
             settings = SiteSettings.load()
 
             if not is_first_message and not user_is_premium:
+                other_user = room.members.exclude(id=self.scope['user'].id).first()
+                other_user_is_premium = other_user.subscriptions.filter(is_active=True).exists() if other_user else False
+
                 if settings.chat_reply_rule == 'premium_only':
                     raise Exception("برای ارسال پیام در این چت، باید حساب ویژه داشته باشید.")
                 elif settings.chat_reply_rule == 'sender_premium' and not other_user_is_premium:
@@ -160,7 +193,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 raise Exception("برای ارسال پیام در گروه یا کانال باید حساب ویژه داشته باشید.")
 
 
-        room = ChatRoom.objects.get(id=self.room_id)
         reply_msg = None
         if reply_to_id:
             try:
