@@ -64,7 +64,7 @@ class RegisterStep6Form(TailwindModelForm):
 class RegisterStep7Form(TailwindModelForm):
     class Meta:
         model = CustomUser
-        fields = ('bio', 'spouse_expectation', 'seeking', 'target_gender', 'security_phrase', 'referral_code')
+        fields = ('bio', 'spouse_expectation', 'seeking', 'security_phrase', 'referral_code')
 
 class LoginForm(forms.Form):
     phone_number = forms.CharField(max_length=15, label="شماره موبایل")

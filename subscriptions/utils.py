@@ -1,13 +1,19 @@
 from subscriptions.models import Wallet, CoinTransaction
 from django.db import transaction
+from django.db.models import F
 
 def add_coins(user, amount, transaction_type, description):
     with transaction.atomic():
         wallet, created = Wallet.objects.select_for_update().get_or_create(user=user)
         before = wallet.coin_balance
-        wallet.coin_balance += amount
+
+        # Use F() for mathematical safety
+        wallet.coin_balance = F('coin_balance') + amount
+        wallet.save(update_fields=['coin_balance'])
+
+        # Refresh from db to get exact new value for logs
+        wallet.refresh_from_db()
         after = wallet.coin_balance
-        wallet.save()
 
         CoinTransaction.objects.create(
             wallet=wallet,
@@ -24,9 +30,14 @@ def deduct_coins(user, amount, transaction_type, description):
         wallet, created = Wallet.objects.select_for_update().get_or_create(user=user)
         if wallet.coin_balance >= amount:
             before = wallet.coin_balance
-            wallet.coin_balance -= amount
+
+            # Use F() for mathematical safety
+            wallet.coin_balance = F('coin_balance') - amount
+            wallet.save(update_fields=['coin_balance'])
+
+            # Refresh from db to get exact new value for logs
+            wallet.refresh_from_db()
             after = wallet.coin_balance
-            wallet.save()
 
             CoinTransaction.objects.create(
                 wallet=wallet,
@@ -38,3 +49,61 @@ def deduct_coins(user, amount, transaction_type, description):
             )
             return True
         return False
+
+def process_gift_transaction(sender, receiver, gift_packet):
+    """
+    Atomic transaction with Pessimistic Locking to prevent double spending.
+    Uses safe integer math for the 15% house edge.
+    """
+    with transaction.atomic():
+        # 1. Lock the sender's wallet
+        sender_wallet, _ = Wallet.objects.select_for_update().get_or_create(user=sender)
+
+        if sender_wallet.coin_balance < gift_packet.price:
+            return False # Insufficient funds
+
+        # 2. Lock the receiver's wallet
+        receiver_wallet, _ = Wallet.objects.select_for_update().get_or_create(user=receiver)
+
+        # 3. Calculate House Edge (using safe integer math to prevent float precision loss)
+        # e.g., price = 100, commission = 15.0 => house_edge = int(100 * 150 / 1000) = 15
+        commission_scaled = int(gift_packet.admin_commission_percent * 10) # 15.0 -> 150
+        house_edge = (gift_packet.price * commission_scaled) // 1000
+        receiver_amount = gift_packet.price - house_edge
+
+        sender_before = sender_wallet.coin_balance
+        receiver_before = receiver_wallet.coin_balance
+
+        # 4. Deduct using F() expressions for mathematical safety
+        sender_wallet.coin_balance = F('coin_balance') - gift_packet.price
+        sender_wallet.save(update_fields=['coin_balance'])
+
+        # 5. Add to receiver using F() expression
+        receiver_wallet.coin_balance = F('coin_balance') + receiver_amount
+        receiver_wallet.save(update_fields=['coin_balance'])
+
+        sender_wallet.refresh_from_db()
+        receiver_wallet.refresh_from_db()
+
+        # 6. Log Transactions
+        CoinTransaction.objects.create(
+            wallet=sender_wallet,
+            amount=-gift_packet.price,
+            before_balance=sender_before,
+            after_balance=sender_wallet.coin_balance,
+            transaction_type='Gift',
+            description=f"Sent gift '{gift_packet.name}' to {receiver.phone_number}"
+        )
+
+        CoinTransaction.objects.create(
+            wallet=receiver_wallet,
+            amount=receiver_amount,
+            before_balance=receiver_before,
+            after_balance=receiver_wallet.coin_balance,
+            transaction_type='Gift',
+            description=f"Received gift '{gift_packet.name}' from {sender.phone_number}"
+        )
+
+        # In a real system, you would also log the house_edge to an Admin/System Wallet here
+
+        return True

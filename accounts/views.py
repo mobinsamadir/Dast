@@ -51,7 +51,6 @@ class RegistrationWizard(SessionWizardView):
         password = form_data.pop('password')
         form_data.pop('password_confirm', None)
 
-        # Check Referral Code
         referral_code = form_data.get('referral_code')
         referred_by = None
         if referral_code:
@@ -64,7 +63,6 @@ class RegistrationWizard(SessionWizardView):
         user = CustomUser.objects.create_user(**form_data, password=password)
 
         if referred_by:
-            # Logic to reward coins handled in subscriptions logic, likely via signals
             pass
 
         login(self.request, user)
@@ -106,7 +104,6 @@ def password_reset_request_view(request):
             phone = form.cleaned_data.get('phone_number')
             try:
                 user = CustomUser.objects.get(phone_number=phone)
-                # In a real app, send SMS with OTP here. For now, redirect to confirm
                 request.session['reset_phone'] = phone
                 return redirect('password_reset_confirm')
             except CustomUser.DoesNotExist:
@@ -142,7 +139,6 @@ def profile_detail(request, user_id):
         messages.error(request, 'این کاربر مسدود شده است.')
         return redirect('landing')
 
-    # Calculate similarity score
     similar_users = CustomUser.objects.annotate(
         similarity=similarity_score(target_user)
     ).exclude(id=user_id).exclude(status='Blocked').order_by('-similarity')[:4]
@@ -152,8 +148,24 @@ def profile_detail(request, user_id):
 @login_required
 def search_users(request):
     query = request.GET.get('q', '')
-    users = CustomUser.objects.filter(display_name__icontains=query).exclude(status='Blocked') if query else CustomUser.objects.exclude(status='Blocked')[:20]
-    return render(request, 'accounts/search.html', {'users': users})
+    gender_filter = request.GET.getlist('gender')
+
+    is_vip = request.user.subscriptions.filter(is_active=True).exists()
+
+    # Dark Pattern / Paywall: Block TS search or multi-gender search for free users
+    if not is_vip:
+        if 'ترنس' in gender_filter or len(gender_filter) > 1:
+            messages.error(request, '🔒 جستجوی پیشرفته (چند جنسیتی یا ترنس) نیازمند حساب ویژه است.')
+            return redirect('plans') # Redirect to VIP purchase page
+
+    users = CustomUser.objects.exclude(status='Blocked')
+    if query:
+        users = users.filter(display_name__icontains=query)
+    if gender_filter:
+        users = users.filter(gender__in=gender_filter)
+
+    users = users[:20]
+    return render(request, 'accounts/search.html', {'users': users, 'is_vip': is_vip})
 
 @login_required
 def nearby_users(request):
@@ -167,7 +179,6 @@ def nearby_users(request):
         location_lng__isnull=False
     ).exclude(status='Blocked').exclude(id=request.user.id)
 
-    # Annotate with distance using Haversine
     users = users.annotate(
         distance=get_haversine_expression(request.user.location_lat, request.user.location_lng)
     ).order_by('distance')[:20]
@@ -177,10 +188,8 @@ def nearby_users(request):
 @login_required
 def my_profile(request):
     if request.method == 'POST':
-        # Simple update logic (can be expanded with a form)
         user = request.user
 
-        # Helper function to get POST data or keep existing if empty
         def get_val(key, existing):
             val = request.POST.get(key)
             return val if val else existing

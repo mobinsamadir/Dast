@@ -1,6 +1,9 @@
 from .managers import CustomUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
+from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
 import uuid
 import os
 
@@ -17,7 +20,7 @@ class CustomUser(AbstractUser):
     last_name = models.CharField(max_length=150, verbose_name="نام خانوادگی")
     display_name = models.CharField(max_length=150, verbose_name="نام نمایشی")
 
-    GENDER_CHOICES = (('مرد', 'مرد'), ('زن', 'زن'))
+    GENDER_CHOICES = (('مرد', 'مرد'), ('زن', 'زن'), ('ترنس', 'ترنس'))
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True, verbose_name="جنسیت")
 
     AGE_CHOICES = [(i, f"{i} سال") for i in range(18, 100)]
@@ -92,8 +95,13 @@ class CustomUser(AbstractUser):
         ('دوست', 'دوست'), ('دوستی با مزایا', 'دوستی با مزایا'), ('رابطه بدون تعهد', 'رابطه بدون تعهد'),
         ('پارتنر', 'پارتنر'), ('هم‌اتاقی', 'هم‌اتاقی'), ('همسر', 'همسر')
     )
+    interested_in = ArrayField(
+        models.CharField(max_length=10, choices=GENDER_CHOICES),
+
+        blank=True, null=True,
+        verbose_name="جنسیت‌های مورد علاقه"
+    )
     seeking = models.CharField(max_length=20, choices=SEEKING_CHOICES, null=True, blank=True, verbose_name="دنبال چه هستید؟")
-    target_gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True, verbose_name="جنسیت مورد نظر")
 
     profile_picture = models.ImageField(upload_to=user_directory_path, null=True, blank=True, verbose_name="عکس پروفایل")
 
@@ -105,6 +113,13 @@ class CustomUser(AbstractUser):
     bot_verification_token = models.CharField(max_length=64, null=True, blank=True)
 
     objects = CustomUserManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['gender']),
+            GinIndex(fields=['interested_in']),
+        ]
+
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'display_name']
 
