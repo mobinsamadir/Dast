@@ -29,6 +29,7 @@ class Message(models.Model):
     image = models.ImageField(upload_to='chat/images/', null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_flagged = models.BooleanField(default=False)
+    is_private_media = models.BooleanField(default=False)
     read_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='read_messages', blank=True)
 
     def clean_text(self):
@@ -68,3 +69,19 @@ class UserReport(models.Model):
 
     def __str__(self):
         return f"Report by {self.reporter} against {self.reported_user}"
+
+class Intimacy(models.Model):
+    user_one = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='intimacy_one')
+    user_two = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='intimacy_two')
+    points = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('user_one', 'user_two')
+
+    def save(self, *args, **kwargs):
+        if self.user_one.id > self.user_two.id:
+            self.user_one, self.user_two = self.user_two, self.user_one
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Intimacy({self.user_one.phone_number}, {self.user_two.phone_number}) - {self.points} pts"

@@ -1,6 +1,7 @@
 from subscriptions.models import Wallet, CoinTransaction
 from django.db import transaction
 from django.db.models import F
+from chat.models import Intimacy
 
 def add_coins(user, amount, transaction_type, description):
     with transaction.atomic():
@@ -85,7 +86,7 @@ def process_gift_transaction(sender, receiver, gift_packet):
         sender_wallet.refresh_from_db()
         receiver_wallet.refresh_from_db()
 
-        # 6. Log Transactions
+        # Log Transactions
         CoinTransaction.objects.create(
             wallet=sender_wallet,
             amount=-gift_packet.price,
@@ -104,6 +105,27 @@ def process_gift_transaction(sender, receiver, gift_packet):
             description=f"Received gift '{gift_packet.name}' from {sender.phone_number}"
         )
 
-        # In a real system, you would also log the house_edge to an Admin/System Wallet here
+        # Increment Intimacy
+        u1, u2 = (sender, receiver) if sender.id < receiver.id else (receiver, sender)
+        intimacy, _ = Intimacy.objects.select_for_update().get_or_create(user_one=u1, user_two=u2)
+        intimacy_points = gift_packet.price // 10
+        intimacy.points = F('points') + intimacy_points
+        intimacy.save(update_fields=['points'])
+
+        # Feature 3: The Whale Crown & Broadcast
+        from django.core.cache import cache
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+
+        whale_ids = cache.get('whale_ids', [])
+        if sender.id in whale_ids and gift_packet.price > 500:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                'global_broadcast',
+                {
+                    'type': 'broadcast_message',
+                    'message': f'👑 [WHALE ALERT] کاربر {sender.phone_number} یک هدیه {gift_packet.price} سکه‌ای ارسال کرد! 👑'
+                }
+            )
 
         return True
