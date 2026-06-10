@@ -18,6 +18,7 @@ class GameRoom(models.Model):
     capacity = models.IntegerField(default=2)
     state = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    commission_processed = models.BooleanField(default=False)
     entry_fee = models.IntegerField(default=10)
     fast_track_fee = models.IntegerField(default=0, help_text='Fee to skip the queue')
     reward_pool = models.IntegerField(default=0)

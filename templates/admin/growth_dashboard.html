@@ -1,0 +1,137 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}{{ title }} | {% trans 'Django site admin' %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .dashboard-cards {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        flex: 1;
+        text-align: center;
+        border-bottom: 4px solid #E53935;
+    }
+    .card h3 {
+        margin-top: 0;
+        font-size: 1.1em;
+        color: #666;
+    }
+    .card .value {
+        font-size: 2em;
+        font-weight: bold;
+        color: #333;
+    }
+    .charts-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .chart-box {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        flex: 1;
+        min-width: 400px;
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        .card, .chart-box {
+            background: #2d2d2d;
+            color: #fff;
+        }
+        .card h3 { color: #ccc; }
+        .card .value { color: #fff; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    
+    <div class="dashboard-cards">
+        <div class="card">
+            <h3>کاربران ویژه (VIP)</h3>
+            <div class="value">{{ vip_users }}</div>
+        </div>
+        <div class="card">
+            <h3>کل کاربران</h3>
+            <div class="value">{{ total_users }}</div>
+        </div>
+        <div class="card">
+            <h3>نرخ تبدیل (Conversion Rate)</h3>
+            <div class="value">{{ conversion_rate }}%</div>
+        </div>
+    </div>
+
+    <div class="charts-container">
+        <div class="chart-box">
+            <h2>سود و زیان سایت در 7 روز گذشته (House Edge)</h2>
+            <canvas id="plChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h2>سرعت بازی (بازی‌های 24 ساعت گذشته)</h2>
+            <canvas id="velocityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    // P&L Chart
+    const plCtx = document.getElementById('plChart').getContext('2d');
+    new Chart(plCtx, {
+        type: 'line',
+        data: {
+            labels: {{ pl_labels|safe }},
+            datasets: [{
+                label: 'سود سایت (سکه)',
+                data: {{ pl_values|safe }},
+                borderColor: '#E53935',
+                backgroundColor: 'rgba(229, 57, 53, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Velocity Chart
+    const velocityCtx = document.getElementById('velocityChart').getContext('2d');
+    new Chart(velocityCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ velocity_labels|safe }},
+            datasets: [{
+                label: 'تعداد بازی',
+                data: {{ velocity_values|safe }},
+                backgroundColor: '#1E88E5',
+                borderWidth: 0,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endblock %}

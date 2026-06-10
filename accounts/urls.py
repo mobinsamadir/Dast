@@ -15,4 +15,5 @@ urlpatterns = [
     path('verify-bot/', views_bot.bot_verification_view, name='bot_verification'),
     path('api/webhook/bot/', views_bot.bot_webhook, name='bot_webhook'),
     path('nearby/', views.nearby_users, name='nearby_users'),
+    path('api/claim-commission/', views.claim_commission, name='claim_commission'),
 ]

@@ -10,9 +10,9 @@ def process_profile_picture(sender, instance, created, **kwargs):
     if created:
         Wallet.objects.create(user=instance)
         # Check if they were referred
-        if instance.referred_by:
+        if hasattr(instance, "referral_info") and instance.referral_info:
             # Add coins to referrer
-            add_coins(instance.referred_by, 50, 'Referral', f"Referral bonus for {instance.phone_number}")
+            add_coins(instance.referral_info.referrer, 50, 'Referral', f"Referral bonus for {instance.phone_number}")
             # Add coins to new user
             add_coins(instance, 20, 'Referral', f"Joined via referral code")
 
