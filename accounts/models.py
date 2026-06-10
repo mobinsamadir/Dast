@@ -2,8 +2,8 @@ from .managers import CustomUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from django.contrib.postgres.fields import ArrayField
-from django.contrib.postgres.indexes import GinIndex
+
+
 import uuid
 import os
 
@@ -95,12 +95,9 @@ class CustomUser(AbstractUser):
         ('دوست', 'دوست'), ('دوستی با مزایا', 'دوستی با مزایا'), ('رابطه بدون تعهد', 'رابطه بدون تعهد'),
         ('پارتنر', 'پارتنر'), ('هم‌اتاقی', 'هم‌اتاقی'), ('همسر', 'همسر')
     )
-    interested_in = ArrayField(
-        models.CharField(max_length=10, choices=GENDER_CHOICES),
+    interested_in = models.JSONField(blank=True, null=True, verbose_name="جنسیت‌های مورد علاقه")
 
-        blank=True, null=True,
-        verbose_name="جنسیت‌های مورد علاقه"
-    )
+
     seeking = models.CharField(max_length=20, choices=SEEKING_CHOICES, null=True, blank=True, verbose_name="دنبال چه هستید؟")
 
     profile_picture = models.ImageField(upload_to=user_directory_path, null=True, blank=True, verbose_name="عکس پروفایل")
@@ -118,7 +115,7 @@ class CustomUser(AbstractUser):
     class Meta:
         indexes = [
             models.Index(fields=['gender']),
-            GinIndex(fields=['interested_in']),
+
         ]
 
     USERNAME_FIELD = 'phone_number'
