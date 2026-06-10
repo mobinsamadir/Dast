@@ -272,3 +272,12 @@ X_FRAME_OPTIONS = 'DENY'
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 SECURE_SSL_REDIRECT = not DEBUG
+
+# Celery Beat Configuration
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'daily_churn_prevention_check': {
+        'task': 'accounts.tasks.daily_churn_prevention_check',
+        'schedule': crontab(hour=2, minute=0),
+    },
+}

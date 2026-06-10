@@ -14,3 +14,14 @@ def process_giftpacket_icon(sender, instance, created, **kwargs):
             field_name='icon',
             quality=82
         )
+
+from django.db.models import F
+from .models import CoinTransaction
+
+@receiver(post_save, sender=CoinTransaction)
+def update_lifetime_coin_burn(sender, instance, created, **kwargs):
+    if created and instance.transaction_type in ['Game', 'Purchase', 'Gift']:
+        user = instance.wallet.user
+        # Increment lifetime_coin_burn efficiently
+        user.lifetime_coin_burn = F('lifetime_coin_burn') + instance.amount
+        user.save(update_fields=['lifetime_coin_burn'])

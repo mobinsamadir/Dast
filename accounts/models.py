@@ -13,6 +13,9 @@ def user_directory_path(instance, filename):
     return f'users/avatars/{filename}'
 
 class CustomUser(AbstractUser):
+    last_activity = models.DateTimeField(null=True, blank=True, verbose_name="آخرین فعالیت")
+    consecutive_losses = models.IntegerField(default=0, verbose_name="باخت‌های متوالی")
+    lifetime_coin_burn = models.IntegerField(default=0, verbose_name="کل سکه‌های مصرف شده")
     username = None # Remove standard username
     phone_number = models.CharField(max_length=15, unique=True, verbose_name="شماره موبایل")
 
@@ -129,3 +132,9 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.phone_number
+
+class WhaleUser(CustomUser):
+    class Meta:
+        proxy = True
+        verbose_name = "کاربر ویژه (Whale)"
+        verbose_name_plural = "کاربران ویژه (Whales)"
