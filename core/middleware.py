@@ -31,3 +31,21 @@ class DeviceBanMiddleware:
             return response
 
         return self.get_response(request)
+
+from django.utils import timezone
+from datetime import timedelta
+
+class ActivityTrackingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated:
+            # 5-minute debounce to avoid excessive DB writes
+            now = timezone.now()
+            if not request.user.last_activity or (now - request.user.last_activity) > timedelta(minutes=5):
+                request.user.last_activity = now
+                request.user.save(update_fields=['last_activity'])
+
+        response = self.get_response(request)
+        return response
