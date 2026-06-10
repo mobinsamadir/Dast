@@ -19,6 +19,7 @@ urlpatterns = [
     path('admin/backup/download/', download_backup, name='download_backup'),
     path('admin/backup/restore/', upload_restore_backup, name='restore_backup'),
     path('admin/', admin.site.urls),
+    path('admin/panel/', include('admin_panel.urls')),
     path('health/', health_check, name='health_check'),
     path('api/v1/', include('core.api.urls')),
     path('', include('accounts.urls')),

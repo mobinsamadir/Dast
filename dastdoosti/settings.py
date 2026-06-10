@@ -207,6 +207,7 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Welcome to Dastdoosti Admin Panel",
     "search_model": ["accounts.CustomUser"],
     "show_ui_builder": True,
+    "custom_links": {"": [{"name": "داشبورد رشد (Growth)", "url": "/admin/panel/growth/", "icon": "fas fa-chart-line", "permissions": ["core.view_siteconfig"]}]},
 }
 
 ASGI_APPLICATION = "dastdoosti.asgi.application"
@@ -276,6 +277,10 @@ SECURE_SSL_REDIRECT = not DEBUG
 # Celery Beat Configuration
 from celery.schedules import crontab
 CELERY_BEAT_SCHEDULE = {
+    'process_referral_commissions': {
+        'task': 'core.tasks.growth_tasks.process_referral_commissions',
+        'schedule': crontab(minute='*/15'),
+    },
     'daily_churn_prevention_check': {
         'task': 'accounts.tasks.daily_churn_prevention_check',
         'schedule': crontab(hour=2, minute=0),

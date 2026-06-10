@@ -91,8 +91,11 @@ class CustomUser(AbstractUser):
 
     security_phrase = models.CharField(max_length=255, null=True, blank=True, verbose_name="عبارت امنیتی")
 
-    referral_code = models.CharField(max_length=20, unique=True, null=True, blank=True, verbose_name="کد معرف")
-    referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals', verbose_name="معرف")
+    referral_code = models.CharField(max_length=6, unique=True, null=True, blank=True, verbose_name="کد معرف")
+    unclaimed_commission = models.IntegerField(default=0, verbose_name="کمیسیون دریافت نشده")
+    total_commission_earned = models.IntegerField(default=0, verbose_name="کل کمیسیون دریافتی")
+    total_spent_coins = models.IntegerField(default=0, verbose_name="کل سکه‌های مصرف شده (ضد تقلب)")
+    
 
     SEEKING_CHOICES = (
         ('دوست', 'دوست'), ('دوستی با مزایا', 'دوستی با مزایا'), ('رابطه بدون تعهد', 'رابطه بدون تعهد'),
@@ -126,7 +129,7 @@ class CustomUser(AbstractUser):
 
     def save(self, *args, **kwargs):
         if not self.referral_code:
-            self.referral_code = str(uuid.uuid4())[:8].upper()
+            import random, string; self.referral_code = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
         super().save(*args, **kwargs)
 
@@ -138,3 +141,16 @@ class WhaleUser(CustomUser):
         proxy = True
         verbose_name = "کاربر ویژه (Whale)"
         verbose_name_plural = "کاربران ویژه (Whales)"
+
+class Referral(models.Model):
+    referrer = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='made_referrals', verbose_name="معرف")
+    referred_user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='referral_info', verbose_name="کاربر دعوت شده")
+    commission_generated = models.IntegerField(default=0, verbose_name="کمیسیون تولید شده")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ")
+
+    class Meta:
+        verbose_name = "معرفی"
+        verbose_name_plural = "معرفی‌ها"
+
+    def __str__(self):
+        return f"{self.referrer.phone_number} -> {self.referred_user.phone_number}"

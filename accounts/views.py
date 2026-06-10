@@ -56,13 +56,15 @@ class RegistrationWizard(SessionWizardView):
         if referral_code:
             try:
                 referred_by = CustomUser.objects.get(referral_code=referral_code)
-                form_data['referred_by'] = referred_by
+                # form_data["referred_by"] removed
             except CustomUser.DoesNotExist:
                 pass
 
         user = CustomUser.objects.create_user(**form_data, password=password)
 
         if referred_by:
+            from accounts.models import Referral
+            Referral.objects.create(referrer=referred_by, referred_user=user)
             pass
 
         login(self.request, user)
@@ -208,3 +210,27 @@ def my_profile(request):
         return redirect('my_profile')
 
     return render(request, 'accounts/my_profile.html', {'user': request.user})
+
+from django.http import JsonResponse
+from core.models import SiteConfig
+from subscriptions.models import Wallet
+from subscriptions.utils import add_coins
+
+@login_required
+def claim_commission(request):
+    if request.method == 'POST':
+        user = request.user
+        config = SiteConfig.load()
+        if user.unclaimed_commission >= config.min_claim_threshold:
+            amount = user.unclaimed_commission
+            user.unclaimed_commission = 0
+            user.total_commission_earned += amount
+            user.save()
+            
+            # Use utility function to safely add coins
+            add_coins(user, amount, 'Commission Claim', 'برداشت کمیسیون زیرمجموعه‌گیری')
+            
+            return JsonResponse({'status': 'success', 'message': f'{amount} سکه به کیف پول شما اضافه شد.', 'new_balance': user.wallet.coin_balance})
+        else:
+            return JsonResponse({'status': 'error', 'message': f'حداقل موجودی برای برداشت {config.min_claim_threshold} سکه است.'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'درخواست نامعتبر.'}, status=400)

@@ -26,3 +26,23 @@ class SiteSettings(models.Model):
 
     def __str__(self):
         return "تنظیمات سایت"
+
+class SiteConfig(models.Model):
+    commission_rate = models.FloatField(default=0.05, verbose_name="نرخ کمیسیون")
+    min_claim_threshold = models.IntegerField(default=100, verbose_name="حداقل میزان برداشت")
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+    class Meta:
+        verbose_name = "تنظیمات رشد"
+        verbose_name_plural = "تنظیمات رشد"
+
+    def __str__(self):
+        return "تنظیمات رشد"
